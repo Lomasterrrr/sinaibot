@@ -1,0 +1,8 @@
+/home/lomaster/sinaibot/telebot/CMakeFiles/telebot.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/telebot_static.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/edit_cache.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/rebuild_cache.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/list_install_components.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/install.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/install/local.dir
+/home/lomaster/sinaibot/telebot/CMakeFiles/install/strip.dir
