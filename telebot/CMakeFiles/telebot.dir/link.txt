@@ -1,1 +1,0 @@
-/usr/bin/cc -fPIC   -I/usr/include -I/usr/include/json-c -Werror -Wall -Wno-unused-function -Wl,--dependency-file=CMakeFiles/telebot.dir/link.d -shared -Wl,-soname,libtelebot.so.4.7.0 -o libtelebot.so.4.7.0 "CMakeFiles/telebot.dir/src/telebot-parser.c.o" "CMakeFiles/telebot.dir/src/telebot-core.c.o" CMakeFiles/telebot.dir/src/telebot.c.o  -L/usr/lib64 -lcurl -ljson-c
