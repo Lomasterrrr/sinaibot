@@ -1,0 +1,15 @@
+/home/lomaster/telebot/telebot/CMakeFiles/telebot.dir
+/home/lomaster/telebot/telebot/CMakeFiles/telebot_static.dir
+/home/lomaster/telebot/telebot/CMakeFiles/edit_cache.dir
+/home/lomaster/telebot/telebot/CMakeFiles/rebuild_cache.dir
+/home/lomaster/telebot/telebot/CMakeFiles/list_install_components.dir
+/home/lomaster/telebot/telebot/CMakeFiles/install.dir
+/home/lomaster/telebot/telebot/CMakeFiles/install/local.dir
+/home/lomaster/telebot/telebot/CMakeFiles/install/strip.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/echobot.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/edit_cache.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/rebuild_cache.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/list_install_components.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/install.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/install/local.dir
+/home/lomaster/telebot/telebot/test/CMakeFiles/install/strip.dir

@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtelebot_static.a "CMakeFiles/telebot_static.dir/src/telebot-parser.c.o" "CMakeFiles/telebot_static.dir/src/telebot-core.c.o" CMakeFiles/telebot_static.dir/src/telebot.c.o
+/usr/bin/ranlib libtelebot_static.a
