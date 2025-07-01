@@ -2,7 +2,7 @@ if [ "$1" = "clean" ] ; then
 	cd telebot
 	make clean
 	cd ..
-	rm sinaibot
+	rm sinaibot CMakeCache.txt
 else
 	cd telebot
 	cmake .
