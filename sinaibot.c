@@ -947,11 +947,8 @@ LOOP:
 	for (n=0;n<num_updates;n++) {
 
 		/* только сообщения */
-		if (updates[n].update_type!=TELEBOT_UPDATE_TYPE_MESSAGE)
-			continue;
-
-		if ((processing(_handle,&updates[n].message))==-1)
-			continue;
+		if (updates[n].update_type==TELEBOT_UPDATE_TYPE_MESSAGE)
+			processing(_handle,&updates[n].message);
 
 		if (updates[n].update_id>=lupdtid)
 			lupdtid=updates[n].update_id+1;
