@@ -913,7 +913,10 @@ int main(int argc, char **argv)
 	telebot_user_t		me;
 
 	signal(SIGINT,leave);
-	loadfromfile("data/token",token,sizeof(token));
+	if (argc==2)
+		snprintf(token,sizeof(token),"%s",argv[1]);
+	else
+		loadfromfile("data/token",token,sizeof(token));
 	loadfromfile("data/admin_user",admin_user,sizeof(admin_user));
 	verbose("admin is \"%s\"",admin_user);
 
