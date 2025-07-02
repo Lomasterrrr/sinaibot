@@ -273,10 +273,10 @@ inline static void str_to_size_t(const char *str, size_t *out,
 
 /*
  * Отправляет с бота указанное сообщение; поддерживает также
- * форматирование.
+ * форматирование. <m> - суть разметка; <mid> - id сообщения.
  */
 inline static void botmsg(telebot_handler_t handle, long long int chat_id,
-		const char *fmt, ...)
+		 const char *fmt, ...)
 {
 	telebot_error_e	ret;
 	char		message[USHRT_MAX];
@@ -286,9 +286,17 @@ inline static void botmsg(telebot_handler_t handle, long long int chat_id,
 	vsnprintf(message,sizeof(message),fmt,args);
 	va_end(args);
 
+	/* master отправка */
 	if ((ret=telebot_send_message(handle,chat_id,message,"Markdown",
 			 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
-		verbose("failed send message bot \"%s\" ret=%d\n", message,ret);
+		if ((ret=telebot_send_message(handle,chat_id,message,"MarkdownV2",
+				 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
+			if ((ret=telebot_send_message(handle,chat_id,message,"HTML",
+					 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
+				if ((ret=telebot_send_message(handle,chat_id,message,NULL,
+						 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
+					verbose("failed send message bot \"%s\" ret=%d\n", message,ret);
+	return;
 }
 
 
