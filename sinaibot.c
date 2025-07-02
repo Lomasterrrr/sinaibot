@@ -675,9 +675,20 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	}
 
 	/* о нет!! */
-	p=my_strcasestr(msg->text,"systemd");
-	if (!p)
-		p=my_strcasestr(msg->text,"системд");
+#define CMP(x) if (!p) p=my_strcasestr(msg->text,(x));
+	p=NULL;
+	CMP("systemd");
+	CMP("системд");
+	CMP("redhat");
+	CMP("red hat");
+	CMP("редхат");
+	CMP("центос");
+	CMP("cent os");
+	CMP("ред хат");
+	CMP("rhel");
+	CMP("рхел");
+	CMP("centos");
+#undef CMP
 	if (p) {
 		master_send_message(handle,msg->chat->id,
 			"ВОТ ЭТО ДА! НОВЫЙ ПРОЕКТ RED HAT SYSTEMD — ЭТО\n"
