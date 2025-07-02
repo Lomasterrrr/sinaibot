@@ -813,7 +813,6 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		if ((telebot_send_message(handle,msg->chat->id,femboy_speak,"Markdown",
 				 false, false, msg->message_id, NULL))!=TELEBOT_ERROR_NONE)
 			verbose("failed send message /femboy\n");
-		botmsg(handle,msg->chat->id,"%s",femboy_speak);
 		return;
 	}
 
