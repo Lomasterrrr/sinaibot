@@ -610,8 +610,8 @@ int cmpstrs(const char *str, ...)
 
 
 /*
- * Основная функция. Обрабатывает все команды полученные ботом.
- *  вызывает соответствующие им вещи.
+ * Обрабатывает команды полученные ботом, вызывает соответствующие им вещи.
+ * За все команды отвечает она.
  */
 inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 {
@@ -619,13 +619,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	char				*cmd,*p;
 	int				n,i;
 
-	if (!msg||!handle)
-		return;
-	if (!msg->text)
-		return;
-	if (!msg->chat)
-		return;
-	if (!msg->from)
+	if (!handle)
 		return;
 	if (strlen(msg->text)==0)
 		return;
@@ -828,6 +822,50 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 
 /*
+ * Основная функция. Обрабатывает все сообщения которые получает бот, решает
+ * что с ними делать. Если она вернула -1 то должно выполнится continue в
+ * основном цикле.
+ */
+inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
+{
+	int n;
+
+	if (!msg||!handle)
+		return -1;
+	if (!msg->chat)
+		return -1;
+
+	/* чтобы фембои не спамили изменением */
+	if (msg->edit_date!=0)
+		return -1;
+
+	c_id=msg->chat->id;
+
+	/* зашли новые участники? */
+	if (msg->new_chat_members&&msg->count_new_chat_members>0) {
+		for (n=0;n<msg->count_new_chat_members;n++)
+			if ((telebot_send_animation(handle,c_id,"data/hello.mp4",
+					true,0,0,0,NULL,NULL,"Markdown",false,
+					msg->message_id,NULL))!=TELEBOT_ERROR_NONE)
+				verbose("failed send hello.mp4!\n");
+		return 0;
+	}
+	
+	if (!msg->from)
+		return -1;
+	if (!msg->text)
+		return -1;
+
+	/* тогда это может быть команда */
+	command(_handle,msg);
+
+	return 0;
+}
+
+
+
+
+/*
  * СКОРЕЕ ВСЕГО ЕСТЬ БАГИ
  *
  * Пропускает все старые сообщения, чтобы он не отвечал
@@ -874,7 +912,6 @@ int main(int argc, char **argv)
 {
 	int			lupdtid,n;
 	telebot_user_t		me;
-	telebot_message_t	msg;
 
 	signal(SIGINT,leave);
 	loadfromfile("data/token",token,sizeof(token));
@@ -911,22 +948,10 @@ LOOP:
 
 		/* только сообщения */
 		if (updates[n].update_type!=TELEBOT_UPDATE_TYPE_MESSAGE)
-			goto LOOP;
+			continue;
 
-		msg=updates[n].message;
-		if (!msg.text)
-			goto LOOP;
-		if (!msg.chat)
-			goto LOOP;
-		if (!msg.from)
-			goto LOOP;
-
-		/* чтобы фембои не спамили изменением */
-		if (msg.edit_date!=0)
-			goto LOOP;
-
-		c_id=msg.chat->id;
-		command(_handle,&msg);
+		if ((processing(_handle,&updates[n].message))==-1)
+			continue;
 
 		if (updates[n].update_id>=lupdtid)
 			lupdtid=updates[n].update_id+1;
