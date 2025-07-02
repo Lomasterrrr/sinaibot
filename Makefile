@@ -1,6 +1,6 @@
 # by nakidai
 CFLAGS += -Itelebot/include
-CFLAGS += -Wall -g
+CFLAGS += -Wall -g -O2
 
 LDFLAGS += -Ltelebot
 LDFLAGS += -Wl,-rpath=telebot
