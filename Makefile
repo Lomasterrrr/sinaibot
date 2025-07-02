@@ -1,5 +1,4 @@
 # by nakidai
-CC=clang
 CFLAGS += -Itelebot/include
 CFLAGS += -Wall -g -O1
 
