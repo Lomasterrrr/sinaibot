@@ -823,8 +823,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 /*
  * Основная функция. Обрабатывает все сообщения которые получает бот, решает
- * что с ними делать. Если она вернула -1 то должно выполнится continue в
- * основном цикле.
+ * что с ними делать.
  */
 inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 {
