@@ -288,8 +288,10 @@ telebot_error_e master_send_message(telebot_handler_t handle, long long int chat
 		ret=telebot_send_message(handle,chat_id,message,modes[i],
 			disable_web_page_preview,disable_notification,
 			reply_to_message_id,reply_markup);
-		if (ret==TELEBOT_ERROR_NONE)
-		    return TELEBOT_ERROR_NONE;
+		if (ret==TELEBOT_ERROR_NONE) {
+			verbose("success send message bot \"%s\" ret=%d\n",message,ret);
+			return TELEBOT_ERROR_NONE;
+		}
 	}
 
 	verbose("failed send message bot \"%s\" ret=%d\n",message,ret);
@@ -399,10 +401,8 @@ inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long 
 {
 	botmsg(handle,chat_id,
 		"*Голосование* — \"%s\";\n"
-
 		"\n*Проголосовать за*:\n  `%s`;\n"
 		"*Проголосовать против*:\n  `%s`;\n\n"
-
 		"*Инициатор*: %s;\n"
 		"*Тип голосования*: %c;\n"
 		"*Длительность*: %ld секунд(а);\n"
@@ -427,14 +427,14 @@ inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long in
 	joinvec(buf2,sizeof(buf2),v->users_no);
 
 	botmsg(handle,chat_id,
-		"*ОКОНЧАНИЕ ГОЛОСОВАНИЯ — *`%ld`* В *"
-		"___%s___*!*\n\n"
+		"*ОКОНЧАНИЕ ГОЛОСОВАНИЯ —* \"%s\" в ___%s___!\n\n"
+		"*ID голосования* — `%ld`;\n"
+		"*Голосовал ли админ?* — %s;\n"
 		"*Были за* — %s\n"
 		"*Были против* — %s\n"
-		"*Голосовал ли админ?* — %s;\n"
-		"\n*Результаты (за/против)*\n — ___%ld / %ld___;"
-		,v->id,curtime(0),buf1,buf2,((v->admin_flag)?"да":"нет"),
-		v->AE,v->NO
+		"\n*Результаты (за/против)*\n — ___%ld / %ld___"
+		,v->msg,curtime(0),v->id,((v->admin_flag)?"да":"нет"),
+		buf1,buf2,v->AE,v->NO
 	);
 }
 
@@ -644,9 +644,9 @@ int cmpstrs(const char *str, ...)
  */
 inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 {
-	cvector_iterator(vote_t)	it;
-	char				*cmd,*p;
-	int				n,i;
+	cvector_iterator(vote_t)	it=NULL;
+	char				*cmd=NULL,*p=NULL;
+	int				n=0,i=0;
 
 	if (!handle)
 		return;
@@ -714,9 +714,15 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			return;
 		}
 	}
-	
+
 	cmd=strtok(msg->text+1," ");
 	n=0;
+
+	/*
+	for (i=0;i<strlen(cmd);i++)
+		verbose("cmd[%d] = '%c' (code %d)",i,
+			cmd[i],(u_char)cmd[i]);
+	*/
 
 	if (!strcmp(cmd,"vote")) {
 		char		v_msg[USHRT_MAX];
@@ -748,7 +754,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 				"  ___<длительность>___:  длительность голосования в секундах;\n"
 				"  ___<тип>___: есть два типа, это A или B.\n"
 				"\n*Например:*\n  /vote ___Избираем меня все вместе! 1000 A___"
-				);
+			);
 			return;
 		}
 
@@ -788,6 +794,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!'
 	 */
 	else if (cmpstrs(cmd,"ae","aE","Ae","AE","æ","Æ",NULL)) {
+		puts("is aeee");
 		botmsg(handle,msg->chat->id,"*AEEEE! ae ae AEEE*");
 		botmsg(handle,msg->chat->id,"*aee*");
 		return;
@@ -906,7 +913,7 @@ inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
 {
 	telebot_update_t	*initupdts=NULL;
-	int			initnum=0,i,max,hvm;
+	int			initnum=0,i,max,hvm=0;
 
 	if (telebot_get_updates(_handle,0,10,0,0,0,&initupdts,
 			&initnum)==TELEBOT_ERROR_NONE&&initnum>0) {
@@ -972,7 +979,7 @@ LOOP:
 	check_vote(_handle,c_id);
 
 	/* получаем обновления */
-	if ((telebot_get_updates(_handle,lupdtid,/* updates limit -> */50,15,0,
+	if ((telebot_get_updates(_handle,lupdtid,/* updates limit -> */200,15,0,
 			0,&updates,&num_updates))!=TELEBOT_ERROR_NONE)
 		goto LOOP;
 
