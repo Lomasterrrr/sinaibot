@@ -679,15 +679,16 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	p=NULL;
 	CMP("systemd");
 	CMP("системд");
+	CMP("центос");
+	CMP("цент ос");
+	CMP("centos");
+	CMP("cent os");
+	CMP("ред хат");
 	CMP("redhat");
 	CMP("red hat");
 	CMP("редхат");
-	CMP("центос");
-	CMP("cent os");
-	CMP("ред хат");
 	CMP("rhel");
 	CMP("рхел");
-	CMP("centos");
 #undef CMP
 	if (p) {
 		master_send_message(handle,msg->chat->id,
