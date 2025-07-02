@@ -1,1 +1,0 @@
-/usr/bin/cc   -I/usr/include -I/usr/include/json-c -Werror -Wall -Wno-unused-function -rdynamic -Wl,--dependency-file=CMakeFiles/echobot.dir/link.d CMakeFiles/echobot.dir/echobot.c.o -o echobot  -Wl,-rpath,/home/lomaster/telebot/telebot -L/usr/lib64 -lcurl -ljson-c ../libtelebot.so.4.7.0 -lpthread -L/usr/lib64 -lcurl -ljson-c
