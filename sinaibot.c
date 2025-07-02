@@ -24,6 +24,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/random.h>
+#include <sys/types.h>
 #include <stdint.h>
 #include <signal.h>
 #include <ctype.h>
@@ -75,7 +77,6 @@ typedef struct __vote_t {
 	cvector(char *) users_no;	/* против */
 } vote_t;
 cvector(vote_t)		vote_vec=NULL;		/* голосования */
-
 inline static int cmpstr(const void *a, const void *b) { return strcmp((const char *)a, (const char *)b); }
 inline static void stop_all_vote(telebot_handler_t handle, long long int chat_id);
 inline static void free_string(void *str) { if (str) free(*(char **)str); }
@@ -277,9 +278,9 @@ inline static void str_to_size_t(const char *str, size_t *out,
 inline static void botmsg(telebot_handler_t handle, long long int chat_id,
 		const char *fmt, ...)
 {
-	char message[USHRT_MAX];
-	telebot_error_e ret;
-	va_list args;
+	telebot_error_e	ret;
+	char		message[USHRT_MAX];
+	va_list		args;
 
 	va_start(args,fmt);
 	vsnprintf(message,sizeof(message),fmt,args);
@@ -490,6 +491,30 @@ inline static void check_vote(telebot_handler_t handle, long long int chat_id)
 
 
 /*
+ * Генерирует (псевдо?)рандомное число в диапазоне указанном в аргументах,
+ * а точнее, <min> и <max>. Возвращает его в u_int (32 bit unsigned int).
+ * Генерирует на основе /dev/random, с помощью функции getrandom. В случае
+ * ошибки вернет 0.
+ */
+u_int urand(u_int min, u_int max)
+{
+	u_int	random,range;
+	ssize_t	ret;
+
+	if (min>max)
+		return 1;
+	range=(max>=min)?(max-min+1):
+		(UINT_MAX-min+1);
+
+	return ((ret=getrandom(&random, sizeof(u_int),GRND_NONBLOCK
+		|GRND_RANDOM))==-1||(ret!=sizeof(u_int))?0:
+		((min+(random%range))));
+}
+
+
+
+
+/*
  * Проверяет является ли строка <str> числом, или нет. Если
  * число вернет 1, если нет, 0.
  */
@@ -554,6 +579,31 @@ inline static void loadfromfile(const char *filename, char *buf, size_t buflen)
 		buf[n-1]='\0';
 	if (f)
 		fclose(f);
+}
+
+
+
+
+/*
+ * Возвращает 1, если <str> равна хоть одному из следующих
+ * аргументов (строк). Количество вариантов задается <num>.
+ * Последний элемент в <...> должен быть NULL!
+ */
+int cmpstrs(const char *str, ...)
+{
+	const char	*sp;
+	va_list		ap;
+
+	va_start(ap,str);
+	while ((sp=va_arg(ap,const char *))) {
+		if (!strcmp(str,sp)) {
+			va_end(ap);
+			return 1;
+		}
+	}
+
+	va_end(ap);
+	return 0;
 }
 
 
@@ -706,30 +756,68 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
+
 	/*
-	 * fucking щааайт!!! is support с помощью так называемого, - говно-code...
+	 * fucking щааайт!!! is support с помощью так называемого, - master-code...
 	 *
 	 * Фанаты такие: 'ооо ктотонокто, как ты это делаешь!'
 	 * Я такой (ну типо): 'мой код суть пободен мастеру'
 	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!'
 	 */
-	else if (!strcmp(cmd,"ae")||!strcmp(cmd,"aE")||
-			!strcmp(cmd,"Ae")||!strcmp(cmd,"AE")||
-			!strcmp(cmd,"æ")||!strcmp(cmd,"Æ")) {
+	else if (cmpstrs(cmd,"ae","aE","Ae","AE","æ","Æ",NULL)) {
 		botmsg(handle,msg->chat->id,"*AEEEE! ae ae AEEE*");
 		botmsg(handle,msg->chat->id,"*aee*");
 		return;
 	}
 
-/*
-	В РАЗРАБОТКЕ ГЕНИАЛЬНЫЙ ПЛАН
 
-	else if (!strcmp(cmd,"fuckingshit")) {
-		p=strtok(NULL," ");
-		if (!p)
-			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 3!\n",0);
+	/*
+	 * ктотонокто!! как у тебя выходит добавлять столь полезные команды?
+	 */
+
+
+	/*
+	 * тайный язык фембоев
+	 *
+	 * Источники:
+	 * https://oldteamhost.github.io/src/pages/sinai.html#section-3
+	 * https://chatgpt.com/
+	 */
+	const char *femboy_lang[]={
+		":3", "OwO", "oWo", ">.<", "👉👈", "🥺", "^^", ">w<", ":<",
+		">3", "\\:c", "UwU", "o.o", ":>", "<3", "\\:O", "uWu", ">W<",
+		"\\:C", "🥺🥺", "🥺🥺🥺", "hewwo~ how awe u~", "senpai~",
+		"not me doing this 👉👈", "*nuzzles u*", "*pounces on u*",
+		"*blushes*", "*giggles~*", "*tail wags*", "*hides face*",
+		"*squeaks*", "*whimpers softly*", "am smol qwq", "pls no bully :<",
+		"i wuv you~", "rawr x3", "so cutesy~", "pwease uwu", "chu~", "nya~",
+		"i'm just a smol bean~", "*licks ur cheek*", "*clings to u*",
+		"*cuddwes*", "*snuggwes tight~*", "*looks up at u wif big eyes*",
+		"*does a happi dance*", "*owo what's dis?*", "*floofs hair*",
+		 "*twirls around*", "*tilts head cutely*", "*paw pats*",
+		"*wiggles fingers*", "s-senpai noticed me! 🥺", "*sparkles*",
+		"uwu what's this? :3", "*huggles*", "*boops ur nose*", "*blushes deeply*",
+		"teehee~", "*sniffs*", "*peekaboo!*", "mwah~ 💋", "soft smooches~",
+		"*sleepy yawn*", "teehee owo", "*licks lips*", "rawr xD", "pls be gentle~",
+		"*floats like a cloud*", "*dreamy eyes*", "glomp~", "paws up! *meow*",
+		"uwu >w<", "*snuggles into your arms*", "💕", "🥺💖", "💖","femboy"
+	};
+	char femboy_speak[USHRT_MAX];
+	for (n=0;n<sizeof(femboy_lang)/sizeof(const char*);n++) {
+		if (strcmp(cmd,femboy_lang[n]))
+			continue;
+
+		strcpy(femboy_speak,"hewwo~ senpai! 👉👈\n");
+		for (i=0;i<40;i++) {
+			strcpy(femboy_speak+strlen(femboy_speak),
+				femboy_lang[urand(0,(sizeof(femboy_lang)/
+				sizeof(const char*))-1)]);
+			strcpy(femboy_speak+strlen(femboy_speak)," ");
+		}
+
+		botmsg(handle,msg->chat->id,"%s",femboy_speak);
+		return;
 	}
-*/
 
 	return;
 	
@@ -739,6 +827,8 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 
 /*
+ * СКОРЕЕ ВСЕГО ЕСТЬ БАГИ
+ *
  * Пропускает все старые сообщения, чтобы он не отвечал
  * на команды которые пропустил, пока был отключен. Для
  * этого ищет номер последнего пропущенного, и ставит
@@ -803,35 +893,49 @@ int main(int argc, char **argv)
 	lupdtid=0;
 	skip_old_msgs(_handle,&lupdtid);
 
-	for (;;) {
-		check_vote(_handle,c_id);
-		if ((telebot_get_updates(_handle,lupdtid,/* updates limit -> */50,15,0,
-				0,&updates,&num_updates))!=TELEBOT_ERROR_NONE)
-			continue;
-		for (n=0;n<num_updates;n++) {
+LOOP:
+	num_updates=0;
+	updates=NULL;
+	lupdtid=0;
 
-			msg=updates[n].message;
-			if (!msg.text)
-				continue;
-			if (!msg.chat)
-				continue;
-			if (!msg.from)
-				continue;
+	/* проверяем голосования */
+	check_vote(_handle,c_id);
 
-			/* чтобы фембои не спамили изменением */
-			if (msg.edit_date!=0)
-				continue;
+	/* получаем обновления */
+	if ((telebot_get_updates(_handle,lupdtid,/* updates limit -> */50,15,0,
+			0,&updates,&num_updates))!=TELEBOT_ERROR_NONE)
+		goto LOOP;
 
-			c_id=msg.chat->id;
-			command(_handle,&msg);
+	for (n=0;n<num_updates;n++) {
 
-			if (updates[n].update_id>=lupdtid)
-				lupdtid=updates[n].update_id+1;
-		}
-		telebot_put_updates(updates,num_updates);
-		sleep(1);
+		/* только сообщения */
+		if (updates[n].update_type!=TELEBOT_UPDATE_TYPE_MESSAGE)
+			goto LOOP;
+
+		msg=updates[n].message;
+		if (!msg.text)
+			goto LOOP;
+		if (!msg.chat)
+			goto LOOP;
+		if (!msg.from)
+			goto LOOP;
+
+		/* чтобы фембои не спамили изменением */
+		if (msg.edit_date!=0)
+			goto LOOP;
+
+		c_id=msg.chat->id;
+		command(_handle,&msg);
+
+		if (updates[n].update_id>=lupdtid)
+			lupdtid=updates[n].update_id+1;
 	}
 
-	leave(0);
+	if (updates)
+		telebot_put_updates(updates,num_updates);
+
+	sleep(1);
+goto LOOP;
+
 	/* NOTREACHED */
 }
