@@ -807,7 +807,8 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		if (strcmp(cmd,femboy_lang[n]))
 			continue;
 
-		strcpy(femboy_speak,"hewwo~ senpai! 👉👈\n");
+		snprintf(femboy_speak,sizeof(femboy_speak),"hewwo~ %s! 👉👈\n\n",
+			get_name_from_msg(msg));
 		for (i=0;i<40;i++) {
 			strcpy(femboy_speak+strlen(femboy_speak),
 				femboy_lang[urand(0,(sizeof(femboy_lang)/
