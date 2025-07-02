@@ -721,11 +721,6 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
-	/* это у другого команда */
-	else if (!strcmp(cmd,"ai")) {
-		return;
-	}
-
 /*
 	В РАЗРАБОТКЕ ГЕНИАЛЬНЫЙ ПЛАН
 
@@ -735,15 +730,6 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 3!\n",0);
 	}
 */
-
-
-	/*
-	 * ОШИБКА
-	 * на англиском: oshibka
-	 */
-	else {
-		botmsg(handle,msg->chat->id,"Команда \"%s\" не найдена!",cmd);
-	}
 
 	return;
 	
