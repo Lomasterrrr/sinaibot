@@ -272,13 +272,40 @@ inline static void str_to_size_t(const char *str, size_t *out,
 
 
 /*
+ * Отправляет сообщение подобно функции telebot_send_message, но
+ * перебирает все кодировки.
+ */
+telebot_error_e master_send_message(telebot_handler_t handle, long long int chat_id,
+		const char *message, bool disable_web_page_preview,
+		bool disable_notification, int reply_to_message_id,
+		void *reply_markup)
+{
+	const char *modes[]={"Markdown","MarkdownV2","HTML",NULL};
+	telebot_error_e ret;
+	int i;
+
+	for (i=0;i<4;i++) {
+		ret=telebot_send_message(handle,chat_id,message,modes[i],
+			disable_web_page_preview,disable_notification,
+			reply_to_message_id,reply_markup);
+		if (ret==TELEBOT_ERROR_NONE)
+		    return TELEBOT_ERROR_NONE;
+	}
+
+	verbose("failed send message bot \"%s\" ret=%d\n",message,ret);
+	return ret;
+}
+
+
+
+
+/*
  * Отправляет с бота указанное сообщение; поддерживает также
  * форматирование. <m> - суть разметка; <mid> - id сообщения.
  */
 inline static void botmsg(telebot_handler_t handle, long long int chat_id,
 		 const char *fmt, ...)
 {
-	telebot_error_e	ret;
 	char		message[USHRT_MAX];
 	va_list		args;
 
@@ -287,15 +314,9 @@ inline static void botmsg(telebot_handler_t handle, long long int chat_id,
 	va_end(args);
 
 	/* master отправка */
-	if ((ret=telebot_send_message(handle,chat_id,message,"Markdown",
-			 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
-		if ((ret=telebot_send_message(handle,chat_id,message,"MarkdownV2",
-				 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
-			if ((ret=telebot_send_message(handle,chat_id,message,"HTML",
-					 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
-				if ((ret=telebot_send_message(handle,chat_id,message,NULL,
-						 false, false, 0, NULL))!=TELEBOT_ERROR_NONE)
-					verbose("failed send message bot \"%s\" ret=%d\n", message,ret);
+	master_send_message(handle,chat_id,message,
+		false,false,0,NULL);
+
 	return;
 }
 
@@ -818,9 +839,8 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			strcpy(femboy_speak+strlen(femboy_speak)," ");
 		}
 
-		if ((telebot_send_message(handle,msg->chat->id,femboy_speak,"Markdown",
-				 false, false, msg->message_id, NULL))!=TELEBOT_ERROR_NONE)
-			verbose("failed send message /femboy\n");
+		master_send_message(handle,msg->chat->id,femboy_speak,
+				false,false,msg->message_id,NULL);
 		return;
 	}
 
