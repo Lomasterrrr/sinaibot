@@ -427,14 +427,15 @@ inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long in
 	joinvec(buf2,sizeof(buf2),v->users_no);
 
 	botmsg(handle,chat_id,
-		"*ОКОНЧАНИЕ ГОЛОСОВАНИЯ —* \"%s\" в ___%s___!\n\n"
-		"*ID голосования* — `%ld`;\n"
+		"*ОКОНЧАНИЕ ГОЛОСОВАНИЯ —* \"%s\" `%ld` ___%s___!\n\n"
+		"*Инициатор*: %s;\n"
 		"*Голосовал ли админ?* — %s;\n"
 		"*Были за* — %s\n"
 		"*Были против* — %s\n"
 		"\n*Результаты (за/против)*\n — ___%ld / %ld___"
-		,v->msg,curtime(0),v->id,((v->admin_flag)?"да":"нет"),
-		buf1,buf2,v->AE,v->NO
+		,v->msg,v->id,curtime(0),v->starter,
+		((v->admin_flag)?"да":"нет"),buf1,
+		buf2,v->AE,v->NO
 	);
 }
 
@@ -823,10 +824,11 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		char		v_type[USHRT_MAX];
 		char		*words[512];
 		vote_t		tmp;
+		size_t		len;
 
 		v_msg[0]=v_time[0]=v_type[0]='\0';
 
-		for (p=strtok(NULL," ");p;p=strtok(NULL," "))
+		for (p=strtok(NULL," ");p&&n<512;p=strtok(NULL," "))
 			words[n++]=p;
 		if (n>=1)
 			strncpy(v_type,words[n-1],USHRT_MAX-1);
@@ -834,9 +836,12 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			strncpy(v_time,words[n-2],USHRT_MAX-1);
 		if (n>=3) {
 			for (i=0;i<n-2;i++) {
-				strcat(v_msg,words[i]);
-				if (i<n-3)
-					strcat(v_msg," ");
+				len=strlen(v_msg);
+				strncat(v_msg,words[i],USHRT_MAX-len-1);
+				if (i<n-3) {
+					len=strlen(v_msg);
+					strncat(v_msg," ",USHRT_MAX-len-1);
+				}
 			}
 		}
 		if (n<3) {
@@ -960,8 +965,8 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 
 /*
- * Основная функция. Обрабатывает все сообщения которые получает бот, решает
- * что с ними делать.
+ * Основная функция. Обрабатывает все сообщения которые
+ * получает бот, решает что с ними делать.
  */
 inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 {
@@ -1047,6 +1052,22 @@ inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
 
 
 /*
+ * Остнаваливает выполнение потока на указанное количество
+ * милисекунд. Ну т.е это sleep() который принимает не
+ * секунды, а милисекунды.
+ */
+inline static void stopms(int ms)
+{
+	struct timespec ts;
+	ts.tv_sec=ms/1000;
+	ts.tv_nsec=(ms%1000)*1000000;
+	nanosleep(&ts,NULL);
+}
+
+
+
+
+/*
  * sinaibot.c
  */
 int main(int argc, char **argv)
@@ -1084,7 +1105,7 @@ LOOP:
 	check_vote(_handle,c_id);
 
 	/* получаем обновления */
-	if ((telebot_get_updates(_handle,lupdtid,/* updates limit -> */200,15,0,
+	if ((telebot_get_updates(_handle,lupdtid,/* updates limit -> */200,10,0,
 			0,&updates,&num_updates))!=TELEBOT_ERROR_NONE)
 		goto LOOP;
 
@@ -1101,7 +1122,8 @@ LOOP:
 	if (updates)
 		telebot_put_updates(updates,num_updates);
 
-	sleep(1);
+	/* 100 ms (надо повысить если нагрузка большая) */
+	stopms(100);
 goto LOOP;
 
 	/* NOTREACHED */
