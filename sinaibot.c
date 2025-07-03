@@ -618,11 +618,22 @@ inline static void loadfromfile(const char *filename, char *buf, size_t buflen)
  */
 char *my_strcasestr(const char *haystack, const char *needle)
 {
+	const char *sp;
 	size_t len;
+
+	if (!haystack||!needle)
+		return NULL;
 	len=strlen(needle);
-	for (;*haystack;haystack++)
-		if (strncasecmp(haystack,needle,len)==0)
-			return (char*)haystack;
+	if (len==0)
+		return (char*)haystack;
+	sp=haystack;
+	while (*sp) {
+		if (strlen(sp)<len)
+			break;
+		if (strncasecmp(sp,needle,len)==0)
+			return (char*)sp;
+		sp++;
+	}
 	return NULL;
 }
 
