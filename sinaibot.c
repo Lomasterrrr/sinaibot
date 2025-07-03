@@ -280,9 +280,9 @@ telebot_error_e master_send_message(telebot_handler_t handle, long long int chat
 		bool disable_notification, int reply_to_message_id,
 		void *reply_markup)
 {
-	const char *modes[]={"Markdown","MarkdownV2","HTML",NULL};
-	telebot_error_e ret;
-	int i;
+	const char	*modes[]={"Markdown","MarkdownV2","HTML",NULL};
+	telebot_error_e	ret;
+	int		i;
 
 	for (i=0;i<4;i++) {
 		ret=telebot_send_message(handle,chat_id,message,modes[i],
@@ -593,8 +593,8 @@ inline static const char *get_name_from_msg(telebot_message_t *msg)
  */
 inline static void loadfromfile(const char *filename, char *buf, size_t buflen)
 {
-	size_t n;
-	FILE *f;
+	size_t	n;
+	FILE	*f;
 
 	if (!(f=fopen(filename,"r")))
 		errx(1,"failed open %s file!",filename);
@@ -618,8 +618,8 @@ inline static void loadfromfile(const char *filename, char *buf, size_t buflen)
  */
 char *my_strcasestr(const char *haystack, const char *needle)
 {
-	const char *sp;
-	size_t len;
+	const char	*sp;
+	size_t		len;
 
 	if (!haystack||!needle)
 		return NULL;
@@ -672,33 +672,22 @@ int cmpstrs(const char *str, ...)
  */
 inline static int systemd_virus(telebot_handler_t handle, telebot_message_t *msg)
 {
+	const char *keywords[]={
+		"systemd","системд","центос","цент ос",
+		"centos","cеntos","cеntоs","centos",
+		"cent os","ред хат","redhat","red hat",
+		"редхат","rhel","сустемд","рхел",
+		"systеmd","sуstemd","sуstеmd","cистeмд"
+	};
 	const char *p;
+	int n;
 
 	if (!handle||!msg)
 		return -1;
 
-#define CMP(x) if (!p) p=my_strcasestr(msg->text,(x));
-	p=NULL;
-	CMP("systemd");
-	CMP("системд");
-	CMP("центос");
-	CMP("цент ос");
-	CMP("centos");
-	CMP("cеntos");
-	CMP("cеntоs");
-	CMP("centos");
-	CMP("cent os");
-	CMP("ред хат");
-	CMP("redhat");
-	CMP("red hat");
-	CMP("редхат");
-	CMP("rhel");
-	CMP("сустемд");
-	CMP("рхел");
-	CMP("systеmd");
-	CMP("sуstemd");
-	CMP("sуstеmd");
-#undef CMP
+	for (n=0,p=NULL;n<sizeof(keywords)/sizeof(const char*);n++)
+		if (((p=my_strcasestr(msg->text,keywords[n]))))
+			break;
 
 	if (p) {
 		master_send_message(handle,msg->chat->id,
@@ -812,7 +801,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 				}
 			}
 			botmsg(handle,msg->chat->id,"*Только администратор может"
-				" оставить голосование!*\nА не фембой %s!",
+				" остановить голосование!*\nА не фембой %s!",
 				get_name_from_msg(msg));
 			return;
 		}
@@ -891,13 +880,10 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	}
 
 
-	/*
-	 * fucking щааайт!!! is support с помощью так называемого, - master-code...
-	 *
+	/* fucking щааайт!!! is support с помощью так называемого, - master-code...
 	 * Фанаты такие: 'ооо ктотонокто, как ты это делаешь!'
 	 * Я такой (ну типо): 'мой код суть пободен мастеру'
-	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!'
-	 */
+	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!' */
 	else if (cmpstrs(cmd,"ae","aE","Ae","AE","æ","Æ",NULL)) {
 		puts("is aeee");
 		botmsg(handle,msg->chat->id,"*AEEEE! ae ae AEEE*");
@@ -906,16 +892,28 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	}
 
 
-	/* ктотонокто!! как у тебя выходит добавлять столь полезные команды?  */
+	/* Команда для остановки сразу всех запущенных голосований в
+	 * текущий момент. Ее может использоввать только администратор,
+	 * а не фембой. */
+	else if (!strcmp(cmd,"STOPALL")) {
+		if (msg->from->username) {
+			if (!strcmp(msg->from->username,admin_user)) {
+				stop_all_vote(_handle,c_id);
+				return;
+			}
+		}
+		botmsg(handle,msg->chat->id,"*Только администратор может"
+			" остановить голосование!*\nА не фембой %s!",
+			get_name_from_msg(msg));
+		return;
+	}
 
 
-	/*
-	 * тайный язык фембоев
+	/* тайный язык фембоев
 	 *
 	 * Источники:
 	 * https://oldteamhost.github.io/src/pages/sinai.html#section-3
-	 * https://chatgpt.com/
-	 */
+	 * https://chatgpt.com/ */
 	const char *femboy_lang[]={
 		":3", "OwO", "oWo", ">.<", "👉👈", "🥺", "^^", ">w<", ":<",
 		">3", "\\:c", "UwU", "o.o", ":>", "<3", "\\:O", "uWu", ">W<",
