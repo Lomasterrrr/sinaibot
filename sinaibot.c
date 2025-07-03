@@ -666,26 +666,17 @@ int cmpstrs(const char *str, ...)
 
 
 /*
- * Обрабатывает команды полученные ботом, вызывает соответствующие им вещи.
- * За все команды отвечает она.
+ * Ищет (регистронезависимо) в строке ключевое слово угрозу,
+ * если нашло, выводит свойственное предупреждение и возвращает
+ * 0, если не нашло, то возвращает -1.
  */
-inline static void command(telebot_handler_t handle, telebot_message_t *msg)
+inline static int systemd_virus(telebot_handler_t handle, telebot_message_t *msg)
 {
-	cvector_iterator(vote_t)	it=NULL;
-	char				*cmd=NULL,*p=NULL;
-	int				n=0,i=0;
+	const char *p;
 
-	if (!handle)
-		return;
-	if (strlen(msg->text)==0)
-		return;
-	if (strlen(msg->text)==1&&msg->text[0]=='/') {
-		botmsg(handle,msg->chat->id,"Ты думал наебнуть эту систему, подлый фембой %s!?",
-			get_name_from_msg(msg));
-		return;
-	}
+	if (!handle||!msg)
+		return -1;
 
-	/* о нет!! */
 #define CMP(x) if (!p) p=my_strcasestr(msg->text,(x));
 	p=NULL;
 	CMP("systemd");
@@ -693,14 +684,22 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	CMP("центос");
 	CMP("цент ос");
 	CMP("centos");
+	CMP("cеntos");
+	CMP("cеntоs");
+	CMP("centos");
 	CMP("cent os");
 	CMP("ред хат");
 	CMP("redhat");
 	CMP("red hat");
 	CMP("редхат");
 	CMP("rhel");
+	CMP("сустемд");
 	CMP("рхел");
+	CMP("systеmd");
+	CMP("sуstemd");
+	CMP("sуstеmd");
 #undef CMP
+
 	if (p) {
 		master_send_message(handle,msg->chat->id,
 			"ВОТ ЭТО ДА! НОВЫЙ ПРОЕКТ RED HAT SYSTEMD — ЭТО\n"
@@ -721,16 +720,48 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			"ХРАНИ НАС, GNU! 🙏❤️\n"
 			,false,false,msg->message_id,NULL
 		);
+		return 0;
+	}
+
+	return -1;
+}
+
+
+
+
+/*
+ * Обрабатывает команды полученные ботом, вызывает соответствующие
+ * им вещи. За все команды отвечает она.
+ */
+inline static void command(telebot_handler_t handle, telebot_message_t *msg)
+{
+	cvector_iterator(vote_t)	it=NULL;
+	char				*cmd=NULL,*p=NULL;
+	int				n=0,i=0;
+
+	if (!handle)
+		return;
+	if (strlen(msg->text)==0)
+		return;
+	if (strlen(msg->text)==1&&msg->text[0]=='/') {
+		botmsg(handle,msg->chat->id,
+			"Ты думал наебнуть эту систему, подлый фембой %s!?",
+			get_name_from_msg(msg));
 		return;
 	}
 
-	if (msg->text[0]!='/')	/* only commands */
+
+	/* дальше только команды */
+	if (msg->text[0]!='/')
 		return;
 
-	/*
-	 * ВРЕМЕННЫЕ КОМАНДЫ ДЛЯ ГОЛОСОВАНИЙ
-	 * YES,NO,STOP
-	 */
+
+	/* Обработка временных команд которые создаются после создания
+	 * голосования. Этот код проходит по всему вектору голосований,
+	 * и сверяет команды каждого голосования, не сходятся ли они с
+	 * <cmd>, и если сходятся, то выполняет соответствующие вещи.
+	 * Помимо этого, проверяет голосовал ли уже пользователь, и
+	 * может ли он вообще голосовать. Обрабатывает, YES NO; STOP. */
 	cmd=msg->text;
 	for (it=cvector_begin(vote_vec);it!=cvector_end(vote_vec);++it) {
 
@@ -747,6 +778,11 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 				botmsg(handle,msg->chat->id,"Вы уже голосовали! (против)");
 				return;
 			}
+
+
+			/* проверяет голосует ли администратор, если да,
+			 * то ставит соответствующий флаг <admin_flag> в
+			 * структуре голосования. */
 			if (msg->from->username)
 				if (!strcmp(msg->from->username,admin_user))
 					++it->admin_flag;
@@ -782,15 +818,16 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		}
 	}
 
+
+	/* Теперь нам понадобится получить команду без / и аргументов,
+	 * т.е. из такого, - (/vote привет 10 A), оно получает, - (vote) */
 	cmd=strtok(msg->text+1," ");
 	n=0;
 
-	/*
-	for (i=0;i<strlen(cmd);i++)
-		verbose("cmd[%d] = '%c' (code %d)",i,
-			cmd[i],(u_char)cmd[i]);
-	*/
 
+	/* Обработка команды /vote, т.е команды для начала голосования,
+	 * парсит аргументы, проверяет их, выводит соответствующие ошибки.
+	 * Если ошибок нет, добавляет это голосование. */
 	if (!strcmp(cmd,"vote")) {
 		char		v_msg[USHRT_MAX];
 		char		v_time[USHRT_MAX];
@@ -844,7 +881,8 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 		/* добавляем голосование */
 		if ((vote_add(v_msg,get_name_from_msg(msg),v_time,v_type,&tmp))==-1) {
-			botmsg(handle,msg->chat->id,"Лимит голосований исчерпан!",cmd);
+			botmsg(handle,msg->chat->id,"Лимит голосований исчерпан! (%d/%d)",
+			VOTE_LIMIT,VOTE_LIMIT);
 			return;
 		}
 
@@ -868,9 +906,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	}
 
 
-	/*
-	 * ктотонокто!! как у тебя выходит добавлять столь полезные команды?
-	 */
+	/* ктотонокто!! как у тебя выходит добавлять столь полезные команды?  */
 
 
 	/*
@@ -958,6 +994,10 @@ inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 		return -1;
 	if (!msg->text)
 		return -1;
+
+	/* о нет!! */
+	if (systemd_virus(handle,msg)==0)
+		return 0;
 
 	/* тогда это может быть команда */
 	command(_handle,msg);
