@@ -65,6 +65,7 @@ typedef struct __vote_t {
 	size_t		AE;	/* за */
 	size_t		NO;	/* против */
 	u_char		admin_flag;	/* голосовал ли администратор? */
+	u_char		senators_flag;	/* могут голосовать только /senators? */
 	time_t		timestamp;	/* точка старта */
 
 	/* команды для за/против/остановка */
@@ -81,7 +82,7 @@ inline static int cmpstr(const void *a, const void *b) { return strcmp((const ch
 inline static void stop_all_vote(telebot_handler_t handle, long long int chat_id);
 inline static void free_string(void *str) { if (str) free(*(char **)str); }
 inline static int vote_add(const char *msg, const char *starter, const char *timel,
-	const char *type, vote_t *tmp);
+	const char *type, const char *flag, vote_t *tmp);
 inline static void vote_del(u_long id, telebot_handler_t handle, long long int chat_id);
 inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long int chat_id);
 inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long int chat_id);
@@ -191,6 +192,22 @@ inline static noreturn void leave(int sig)
 	puts("\n");
 	verbose("LEAVE FROM SINAI BOT!!");
 	exit(0);
+}
+
+
+
+
+/*
+ * Остнаваливает выполнение потока на указанное количество
+ * милисекунд. Ну т.е это sleep() который принимает не
+ * секунды, а милисекунды.
+ */
+inline static void stopms(int ms)
+{
+	struct timespec ts;
+	ts.tv_sec=ms/1000;
+	ts.tv_nsec=(ms%1000)*1000000;
+	nanosleep(&ts,NULL);
 }
 
 
@@ -332,7 +349,8 @@ inline static void botmsg(telebot_handler_t handle, long long int chat_id,
  * копирует его по адресу <tmp> (это чтобы потом вывести).
  */
 inline static int vote_add(const char *msg, const char *starter,
-		const char *timel, const char *type, vote_t *tmp)
+		const char *timel, const char *type, const char
+		*flag, vote_t *tmp)
 {
 	vote_t v;
 
@@ -341,6 +359,7 @@ inline static int vote_add(const char *msg, const char *starter,
 
 	memset(&v,0,sizeof(v));
 	str_to_size_t(timel,&v.timel,0,SIZE_MAX);
+	v.senators_flag=flag[0];
 	v.type=type[0];
 
 	/* master seed */
@@ -404,12 +423,14 @@ inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long 
 		"\n*Проголосовать за*:\n  `%s`;\n"
 		"*Проголосовать против*:\n  `%s`;\n\n"
 		"*Инициатор*: %s;\n"
+		"*Только почетные?*: %s;\n"
 		"*Тип голосования*: %c;\n"
 		"*Длительность*: %ld секунд(а);\n"
 		"*ID голосования*: `%ld`;\n"
 		"\n— ___%s___\n"
-		,v->msg,v->cmd_ae,v->cmd_no,v->starter,v->type,
-		v->timel,v->id,curtime(v->timestamp)
+		,v->msg,v->cmd_ae,v->cmd_no,v->starter,
+		((v->senators_flag=='1')?"да":"нет"),
+		v->type,v->timel,v->id,curtime(v->timestamp)
 	);
 }
 
@@ -429,11 +450,13 @@ inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long in
 	botmsg(handle,chat_id,
 		"*ОКОНЧАНИЕ ГОЛОСОВАНИЯ —* \"%s\" `%ld` ___%s___!\n\n"
 		"*Инициатор*: %s;\n"
+		"*Только почетные?*: %s;\n"
 		"*Голосовал ли админ?* — %s;\n"
 		"*Были за* — %s\n"
 		"*Были против* — %s\n"
 		"\n*Результаты (за/против)*\n — ___%ld / %ld___"
 		,v->msg,v->id,curtime(0),v->starter,
+		((v->senators_flag=='1')?"да":"нет"),
 		((v->admin_flag)?"да":"нет"),buf1,
 		buf2,v->AE,v->NO
 	);
@@ -581,6 +604,36 @@ inline static const char *get_name_from_msg(telebot_message_t *msg)
 		if (strlen(msg->from->last_name)>0)
 			return msg->from->last_name;
 	return "none";
+}
+
+
+
+
+/*
+ * Проверяет содежится ли ник <input> в файле data/senators.
+ * Если содержится, то возвращает 1, если нет то 0.
+ */
+inline static int is_senator(const char *input)
+{
+	char	line[USHRT_MAX];
+	FILE	*f;
+
+	bzero(line,sizeof(line));
+	if (!(f=fopen("data/senators","r")))
+		return 0;
+
+	while (fgets(line,sizeof(line),f)) {
+		line[strcspn(line,"\r\n")]='\0';
+		if (line[0]=='\0')
+			continue;
+		if (!strcmp(input,line)) {
+			fclose(f);
+			return 1;
+		}
+	}
+
+	fclose(f);
+	return 0;
 }
 
 
@@ -770,6 +823,25 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			}
 
 
+			/* проверяет голосует ли сенатор если у голосо
+			 * вания в структуре стоит <senators_flag>=1 */
+			if (it->senators_flag=='1') {
+				if (msg->from->username)  {
+					if (!is_senator(msg->from->username)) {
+						botmsg(handle,msg->chat->id,"*Только почетные участники могут"
+							" голосовать в этом голосовании!* А не фембой %s!",
+							get_name_from_msg(msg));
+						return;
+					}
+				}
+				else {
+					botmsg(handle,msg->chat->id,"*Из-за отсутствия у вас @username"
+						" нельзя проверить почетный ли вы участник!*");
+					return;
+				}
+			}
+
+
 			/* проверяет голосует ли администратор, если да,
 			 * то ставит соответствующий флаг <admin_flag> в
 			 * структуре голосования. */
@@ -822,6 +894,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		char		v_msg[USHRT_MAX];
 		char		v_time[USHRT_MAX];
 		char		v_type[USHRT_MAX];
+		char		v_flag[USHRT_MAX];
 		char		*words[512];
 		vote_t		tmp;
 		size_t		len;
@@ -831,27 +904,30 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		for (p=strtok(NULL," ");p&&n<512;p=strtok(NULL," "))
 			words[n++]=p;
 		if (n>=1)
-			strncpy(v_type,words[n-1],USHRT_MAX-1);
+			strncpy(v_flag,words[n-1],USHRT_MAX-1);
 		if (n>=2)
-			strncpy(v_time,words[n-2],USHRT_MAX-1);
-		if (n>=3) {
-			for (i=0;i<n-2;i++) {
+			strncpy(v_type,words[n-2],USHRT_MAX-1);
+		if (n>=3)
+			strncpy(v_time,words[n-3],USHRT_MAX-1);
+		if (n>=4) {
+			for (i=0;i<n-3;i++) {
 				len=strlen(v_msg);
 				strncat(v_msg,words[i],USHRT_MAX-len-1);
-				if (i<n-3) {
+				if (i<n-4) {
 					len=strlen(v_msg);
 					strncat(v_msg," ",USHRT_MAX-len-1);
 				}
 			}
 		}
-		if (n<3) {
-			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 3!\n",n);
+		if (n<4) {
+			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 4!\n",n);
 			botmsg(handle,msg->chat->id,
-				"*Используйте*:\n  /vote ___<сообщение> <длительность> <тип>___\n\n"
+				"*Используйте*:\n  /vote ___<сообщение> <длительность> <тип> <флаг>___\n\n"
 				"*Аргументы*:\n  ___<сообщение>___: какая то информация о голосовании;\n"
 				"  ___<длительность>___:  длительность голосования в секундах;\n"
 				"  ___<тип>___: есть два типа, это A или B.\n"
-				"\n*Например:*\n  /vote ___Избираем меня все вместе! 1000 A___"
+				"  ___<флаг>___: если 1, то голосовать могут только /senlist.\n"
+				"\n*Например:*\n  /vote ___Избираем меня все вместе! 1000 A 0___"
 			);
 			return;
 		}
@@ -861,6 +937,11 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			return;
 		}
 
+		if (strlen(v_flag)>1||(v_flag[0]!='0'&&v_flag[0]!='1')) {
+			botmsg(handle,msg->chat->id,
+				"Неверный ___<флаг>___ \"%s\" — доступны только 0 или 1!\n",v_flag);
+			return;
+		}
 		if (strlen(v_type)>1||(v_type[0]!='A'&&v_type[0]!='B')) {
 			botmsg(handle,msg->chat->id,
 				"Неверный ___<тип>___ \"%s\" — доступны только A или B!\n",v_type);
@@ -874,7 +955,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		}
 
 		/* добавляем голосование */
-		if ((vote_add(v_msg,get_name_from_msg(msg),v_time,v_type,&tmp))==-1) {
+		if ((vote_add(v_msg,get_name_from_msg(msg),v_time,v_type,v_flag,&tmp))==-1) {
 			botmsg(handle,msg->chat->id,"Лимит голосований исчерпан! (%d/%d)",
 			VOTE_LIMIT,VOTE_LIMIT);
 			return;
@@ -899,7 +980,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	/* Команда для остановки сразу всех запущенных голосований в
 	 * текущий момент. Ее может использоввать только администратор,
 	 * а не фембой. */
-	else if (!strcmp(cmd,"STOPALL")) {
+	else if (!strcmp(cmd,"votestopall")) {
 		if (msg->from->username) {
 			if (!strcmp(msg->from->username,admin_user)) {
 				stop_all_vote(_handle,c_id);
@@ -909,6 +990,94 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		botmsg(handle,msg->chat->id,"*Только администратор может"
 			" остановить голосование!*\nА не фембой %s!",
 			get_name_from_msg(msg));
+		return;
+	}
+
+
+	/* Команда для вывода списка снаторов, из файла data/
+	 * senators. */
+	else if (!strcmp(cmd,"senlist")) {
+		char	line[USHRT_MAX];
+		char	buf[USHRT_MAX]; 
+		FILE	*f;
+		size_t	len=0;
+
+		bzero(buf,sizeof(buf));
+		bzero(line,sizeof(line));
+
+		if (!(f=fopen("data/senators","r")))
+			return;
+
+		while (fgets(line,sizeof(line),f)) {
+			line[strcspn(line,"\r\n")]='\0';
+			if (line[0]=='\0')
+				continue;
+			if (len+strlen(line)+3>=sizeof(buf))
+				break;
+			if (len>0) {
+				buf[len++]=';';
+				buf[len++]=' ';
+			}
+			strcpy(buf+len,line);
+			len+=strlen(line);
+		}
+		fclose(f);
+
+		if ((telebot_send_message(handle,msg->chat->id,buf,NULL,
+				0,0,msg->message_id,NULL))!=TELEBOT_ERROR_NONE)
+			verbose("failed send message bot \"%s\"",buf);
+
+		return;
+	}
+
+
+	/* Команда для пинга всех снаторов, из файла data/
+	 * senators. */
+	else if (!strcmp(cmd,"senping")) {
+		char	line[USHRT_MAX-5];
+		char	user[USHRT_MAX];
+		FILE	*f;
+
+		if (msg->from->username)
+			if (!strcmp(msg->from->username,admin_user))
+				goto next;
+		botmsg(handle,msg->chat->id,"*Только администратор может"
+			" собрать всех почетных участников!* А не фембой %s!",
+			get_name_from_msg(msg));
+		return;
+
+	next:
+		if (!(f=fopen("data/senators","r")))
+			return;
+
+		bzero(user,sizeof(user));
+		n=0;
+
+		botmsg(handle,msg->chat->id,"*СОБРАНИЕ!*");
+		while (fgets(line,sizeof(line),f)) {
+			line[strcspn(line,"\r\n")]='\0';
+			if (line[0]=='\0')
+				continue;
+			if (n<20) {
+				strcpy(user+strlen(user),"@");
+				strcpy(user+strlen(user),line);
+				strcpy(user+strlen(user)," ");
+				n++;
+			}
+			else {
+				if ((telebot_send_message(handle,msg->chat->id,user,NULL,
+						0,0,0,NULL))!=TELEBOT_ERROR_NONE)
+					verbose("failed send message bot \"%s\"",user);
+				bzero(user,sizeof(user));
+				n=0;
+			}
+		}
+		if (n!=0)
+			if ((telebot_send_message(handle,msg->chat->id,user,NULL,
+					0,0,0,NULL))!=TELEBOT_ERROR_NONE)
+				verbose("failed send message bot \"%s\"",user);
+
+		fclose(f);
 		return;
 	}
 
@@ -1045,22 +1214,6 @@ inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
 			*lastupdate=max+1;
 		}
 	}
-}
-
-
-
-
-/*
- * Остнаваливает выполнение потока на указанное количество
- * милисекунд. Ну т.е это sleep() который принимает не
- * секунды, а милисекунды.
- */
-inline static void stopms(int ms)
-{
-	struct timespec ts;
-	ts.tv_sec=ms/1000;
-	ts.tv_nsec=(ms%1000)*1000000;
-	nanosleep(&ts,NULL);
 }
 
 
