@@ -643,8 +643,8 @@ char *my_strcasestr(const char *haystack, const char *needle)
 
 /*
  * Возвращает 1, если <str> равна хоть одному из следующих
- * аргументов (строк). Количество вариантов задается <num>.
- * Последний элемент в <...> должен быть NULL!
+ * аргументов (строк). Последний элемент в <...> должен
+ * быть NULL! Не влияет регистр!
  */
 int cmpstrs(const char *str, ...)
 {
@@ -653,7 +653,7 @@ int cmpstrs(const char *str, ...)
 
 	va_start(ap,str);
 	while ((sp=va_arg(ap,const char *))) {
-		if (!strcmp(str,sp)) {
+		if (!strcasecmp(str,sp)) {
 			va_end(ap);
 			return 1;
 		}
@@ -889,8 +889,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	 * Фанаты такие: 'ооо ктотонокто, как ты это делаешь!'
 	 * Я такой (ну типо): 'мой код суть пободен мастеру'
 	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!' */
-	else if (cmpstrs(cmd,"ae","aE","Ae","AE","æ","Æ","ае","aе","аe",NULL)) {
-		puts("is aeee");
+	else if (cmpstrs(cmd,"ae","æ","Æ","ае","aе","аe",NULL)) {
 		botmsg(handle,msg->chat->id,"*AEEEE! ae ae AEEE*");
 		botmsg(handle,msg->chat->id,"*aee*");
 		return;
@@ -940,7 +939,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	};
 	char femboy_speak[USHRT_MAX];
 	for (n=0;n<sizeof(femboy_lang)/sizeof(const char*);n++) {
-		if (strcmp(cmd,femboy_lang[n]))
+		if (!cmpstrs(cmd,femboy_lang[n],NULL))
 			continue;
 
 		snprintf(femboy_speak,sizeof(femboy_speak),"hewwo~ %s! 👉👈\n\n",
