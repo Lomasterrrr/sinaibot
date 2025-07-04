@@ -889,7 +889,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	 * Фанаты такие: 'ооо ктотонокто, как ты это делаешь!'
 	 * Я такой (ну типо): 'мой код суть пободен мастеру'
 	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!' */
-	else if (cmpstrs(cmd,"ae","aE","Ae","AE","æ","Æ",NULL)) {
+	else if (cmpstrs(cmd,"ae","aE","Ae","AE","æ","Æ","ае","aе","аe",NULL)) {
 		puts("is aeee");
 		botmsg(handle,msg->chat->id,"*AEEEE! ae ae AEEE*");
 		botmsg(handle,msg->chat->id,"*aee*");
