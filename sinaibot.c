@@ -1519,6 +1519,7 @@ inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 		return -1;
 
 	c_id=msg->chat->id;
+	verbose("%lld and %lld\n",c_id,group_id);
 	if (c_id!=group_id) {
 		telebot_leave_chat(handle,c_id);
 		return -1;
@@ -1609,6 +1610,7 @@ int main(int argc, char **argv)
 	loadfromfile("data/group",group,sizeof(group));
 	if (strlen(group)>0)
 		group_id=strtoll(group,NULL,10);
+	printf("%lld\n",group_id);
 	verbose("admin is \"%s\"",admin_user);
 
 	if (telebot_create(&_handle,token)!=TELEBOT_ERROR_NONE)
