@@ -1290,6 +1290,7 @@ typedef struct telebot_webhook_info {
 
 } telebot_webhook_info_t;
 
+
 /**
  * @brief This is opaque object to represent a telebot handler.
  */
