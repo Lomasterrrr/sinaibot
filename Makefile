@@ -1,10 +1,14 @@
 # by nakidai
 CFLAGS += -Itelebot/include
 CFLAGS += -Wall -g -O1
+CFLAGS.jsonc!=pkg-config --cflags json-c
+CFLAGS+=${CFLAGS.jsonc}
 
 LDFLAGS += -Ltelebot
 LDFLAGS += -Wl,-rpath=telebot
 LDLIBS += -l:libtelebot.so
+LDLIBS.jsonc!=pkg-config --libs json-c
+LDLIBS+=${LDLIBS.jsonc}
 
 all: sinaibot
 
