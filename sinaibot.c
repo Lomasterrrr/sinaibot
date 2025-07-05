@@ -986,6 +986,7 @@ inline static void dep_update(telebot_handler_t handle, long long int chat_id)
 					0,NULL))!=TELEBOT_ERROR_NONE)
 				verbose("failed edit msg for dep!");
 			--dep_vec[n].leftupdate;
+			stopms(150);
 		}
 	}
 }
