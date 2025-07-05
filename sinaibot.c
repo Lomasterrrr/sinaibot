@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <signal.h>
+#include <float.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <errno.h>
@@ -86,6 +87,31 @@ inline static int vote_add(const char *msg, const char *starter, const char *tim
 inline static void vote_del(u_long id, telebot_handler_t handle, long long int chat_id);
 inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long int chat_id);
 inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long int chat_id);
+
+/*
+ * СТАТИСТИКА
+ */
+typedef struct __stats_t {
+	time_t tstamp;	/* точка старта */
+	size_t n_messages;	/* сообщений */
+	size_t n_join;	/* зашло новых */
+	size_t n_total;	/* общее число каких либо действий */
+} stats_t;
+stats_t h12;	/* за 12 часов */
+inline static int incsafe(size_t *v, size_t n);
+inline static int update_stats(stats_t *s, telebot_update_t *u);
+
+
+
+
+/*
+inline static int updatedump(FILE *in, telebot_update_t *u)
+{
+	if (!in||!u)
+		return -1;
+	fprintf(in,"UPDATE ID %d",u->update_id);
+}
+*/
 
 
 
@@ -773,6 +799,55 @@ inline static int systemd_virus(telebot_handler_t handle, telebot_message_t *msg
 
 
 /*
+ * Увеличивает переменную size_t <v> на <n>, но проверяет
+ * переполнение, если оно будет после увелечения
+ * возвращает 0, если нет 1.
+ */
+inline static int incsafe(size_t *v, size_t n)
+{
+	if (!v)
+		return 0;
+	if (n>SIZE_MAX-*v)
+		return 0;
+	*v+=n;
+	return 1;
+}
+
+
+
+
+/*
+ * Обновляет статистику <s> на основе обновления <u>.
+ */
+inline static int update_stats(stats_t *s, telebot_update_t *u)
+{
+	if (!s||!u)
+		return -1;
+
+	/* если прошло 12 часов, обновляем все */
+	if ((time(NULL)-s->tstamp)>=43200) {
+		bzero(s,sizeof(*s));
+		s->tstamp=time(NULL);
+	}
+	switch (u->update_type) {
+		case TELEBOT_UPDATE_TYPE_MESSAGE:
+			incsafe(&s->n_messages,1);
+			incsafe(&s->n_join,u->message.count_new_chat_members);
+			break;
+		case TELEBOT_UPDATE_TYPE_CHANNEL_POST:
+			incsafe(&s->n_messages,1);
+			break;
+		default:
+			break;
+	}
+	incsafe(&s->n_total,1);
+	return 0;
+}
+
+
+
+
+/*
  * Обрабатывает команды полученные ботом, вызывает соответствующие
  * им вещи. За все команды отвечает она.
  */
@@ -1051,33 +1126,46 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			return;
 
 		bzero(user,sizeof(user));
-		n=0;
 
 		botmsg(handle,msg->chat->id,"*СОБРАНИЕ!*");
 		while (fgets(line,sizeof(line),f)) {
 			line[strcspn(line,"\r\n")]='\0';
 			if (line[0]=='\0')
 				continue;
-			if (n<20) {
-				strcpy(user+strlen(user),"@");
-				strcpy(user+strlen(user),line);
-				strcpy(user+strlen(user)," ");
-				n++;
-			}
-			else {
-				if ((telebot_send_message(handle,msg->chat->id,user,NULL,
-						0,0,0,NULL))!=TELEBOT_ERROR_NONE)
-					verbose("failed send message bot \"%s\"",user);
-				bzero(user,sizeof(user));
-				n=0;
-			}
+			strcpy(user+strlen(user),"@");
+			strcpy(user+strlen(user),line);
+			strcpy(user+strlen(user)," ");
 		}
-		if (n!=0)
-			if ((telebot_send_message(handle,msg->chat->id,user,NULL,
-					0,0,0,NULL))!=TELEBOT_ERROR_NONE)
-				verbose("failed send message bot \"%s\"",user);
+		if ((telebot_send_message(handle,msg->chat->id,user,NULL,
+				0,0,0,NULL))!=TELEBOT_ERROR_NONE)
+			verbose("failed send message bot \"%s\"",user);
 
 		fclose(f);
+		return;
+	}
+
+	/* статистика */
+	else if (!strcmp(cmd,"stats")) {
+		double e=DBL_MIN;		/* прошло времени */
+
+		e=difftime(time(NULL),h12.tstamp);
+		botmsg(handle,msg->chat->id,
+			"*Cтатистика —* ___%s___\n\n"
+			"*Любых действий*: %ld\n"
+			"*Новых участников*: %ld\n"
+			"*Сообщений*: %ld\n"
+			"\n— %.2f/h\n"
+			"— %.4f/m\n"
+			"— %.8f/sec\n"
+			,curtime(0)
+			,h12.n_total
+			,h12.n_join
+			,h12.n_messages
+			,(((e>=3600.0))?(double)h12.n_total/(e/3600.0):0)
+			,(((e>=60.0))?(double)h12.n_total/(e/60.0):0)
+			,((double)h12.n_total/e)
+		);
+
 		return;
 	}
 
@@ -1248,6 +1336,10 @@ int main(int argc, char **argv)
 	lupdtid=0;
 	skip_old_msgs(_handle,&lupdtid);
 
+	/* иницилизируем статистику  */
+	bzero(&h12,sizeof(h12));
+	h12.tstamp=time(NULL);
+
 LOOP:
 	num_updates=0;
 	updates=NULL;
@@ -1262,6 +1354,9 @@ LOOP:
 		goto LOOP;
 
 	for (n=0;n<num_updates;n++) {
+
+		/* обновляем статистику */
+		update_stats(&h12,&updates[n]);
 
 		/* только сообщения */
 		if (updates[n].update_type==TELEBOT_UPDATE_TYPE_MESSAGE)
