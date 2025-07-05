@@ -913,7 +913,7 @@ inline static int dep_add(const char *starter, size_t *index)
 	d.id=((({struct timespec ts;clock_gettime(CLOCK_MONOTONIC,&ts),
 		(u_long)(ts.tv_sec*1000000000L+ts.tv_nsec);})));
 
-	d.leftupdate=1;
+	d.leftupdate=3;
 	d.win=urand(0,1);
 	snprintf(d.starter,sizeof(d.starter),"%s",starter);
 	
@@ -986,7 +986,6 @@ inline static void dep_update(telebot_handler_t handle, long long int chat_id)
 					0,NULL))!=TELEBOT_ERROR_NONE)
 				verbose("failed edit msg for dep!");
 			--dep_vec[n].leftupdate;
-			stopms(150);
 		}
 	}
 }
@@ -1592,7 +1591,7 @@ inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
  */
 int main(int argc, char **argv)
 {
-	int			lupdtid,n,i;
+	int			lupdtid,n;
 	telebot_user_t		me;
 
 	signal(SIGINT,leave);
@@ -1625,9 +1624,8 @@ LOOP:
 	updates=NULL;
 	lupdtid=0;
 
-	for (i=0;i<4;i++)
-		/* обновляем депы */
-		dep_update(_handle,c_id);
+	/* обновляем депы */
+	dep_update(_handle,c_id);
 
 	/* проверяем голосования */
 	check_vote(_handle,c_id);
