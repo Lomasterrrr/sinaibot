@@ -137,7 +137,7 @@ cvector(dep_t)	dep_vec=NULL;	/* депы */
 inline static void stop_all_dep(telebot_handler_t handle, long long int chat_id);
 inline static int dep_add(const char *starter, size_t *index);
 inline static void dep_endmsg(dep_t *d, telebot_handler_t handle, long long int chat_id);
-inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id);
+inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id, int id);
 inline static void dep_state(char *s, size_t slen, u_char win);
 inline static void dep_del(u_long id, telebot_handler_t handle, long long int chat_id);
 inline static void dep_update(telebot_handler_t handle, long long int chat_id);
@@ -839,7 +839,7 @@ inline static void dep_state(char *s, size_t slen, u_char win)
  * получить id этого отправленного сообщения. Эта функция
  * получает и записывает в <d->msg_id>.
  */
-inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id)
+inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id, int id)
 {
 	char				state[2048];
 	char				result[USHRT_MAX];
@@ -859,7 +859,7 @@ inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long in
 		d->id,d->starter,state);
 
 	ret=telebot_core_send_message(_handle->core_h,chat_id,
-		result,NULL,false,false,0,NULL,&response);
+		result,NULL,false,false,id,NULL,&response);
 
 	/* искусство Json и Си */
 	if (ret==TELEBOT_ERROR_NONE&&response.data!=NULL) {
@@ -913,8 +913,8 @@ inline static int dep_add(const char *starter, size_t *index)
 	d.id=((({struct timespec ts;clock_gettime(CLOCK_MONOTONIC,&ts),
 		(u_long)(ts.tv_sec*1000000000L+ts.tv_nsec);})));
 
-	d.win=urand(0,1);
 	d.leftupdate=1;
+	d.win=urand(0,1);
 	snprintf(d.starter,sizeof(d.starter),"%s",starter);
 	
 	cvector_push_back(dep_vec,d);
@@ -1445,7 +1445,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			return;
 		}
 
-		dep_startmsg(&dep_vec[index],handle,msg->chat->id);
+		dep_startmsg(&dep_vec[index],handle,msg->chat->id,msg->message_id);
 		return;
 	}
 
