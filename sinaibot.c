@@ -49,6 +49,8 @@
 telebot_handler_t	_handle;
 char			token[BUFSIZ];
 char			admin_user[BUFSIZ];
+char			group[BUFSIZ];
+long long int		group_id;
 telebot_update_t	*updates;
 int			num_updates;
 long long int		c_id;
@@ -1517,6 +1519,10 @@ inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 		return -1;
 
 	c_id=msg->chat->id;
+	if (c_id!=group_id) {
+		telebot_leave_chat(handle,c_id);
+		return -1;
+	}
 
 	/* зашли новые участники? */
 	if (msg->new_chat_members&&msg->count_new_chat_members>0) {
@@ -1599,7 +1605,10 @@ int main(int argc, char **argv)
 		snprintf(token,sizeof(token),"%s",argv[1]);
 	else
 		loadfromfile("data/token",token,sizeof(token));
-	loadfromfile("data/admin_user",admin_user,sizeof(admin_user));
+	loadfromfile("data/admin",admin_user,sizeof(admin_user));
+	loadfromfile("data/group",group,sizeof(group));
+	if (strlen(group)>0)
+		group_id=strtoll(group,NULL,10);
 	verbose("admin is \"%s\"",admin_user);
 
 	if (telebot_create(&_handle,token)!=TELEBOT_ERROR_NONE)
