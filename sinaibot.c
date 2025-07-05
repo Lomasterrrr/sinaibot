@@ -988,7 +988,6 @@ inline static void dep_update(telebot_handler_t handle, long long int chat_id)
 			--dep_vec[n].leftupdate;
 		}
 	}
-	stopms(100);
 }
 
 
