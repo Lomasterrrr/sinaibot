@@ -914,7 +914,7 @@ inline static int dep_add(const char *starter, size_t *index)
 		(u_long)(ts.tv_sec*1000000000L+ts.tv_nsec);})));
 
 	d.win=urand(0,1);
-	d.leftupdate=3;	/* всего 5 */
+	d.leftupdate=1;
 	snprintf(d.starter,sizeof(d.starter),"%s",starter);
 	
 	cvector_push_back(dep_vec,d);
