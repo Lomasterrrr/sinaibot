@@ -913,7 +913,7 @@ inline static int dep_add(const char *starter, size_t *index)
 	d.id=((({struct timespec ts;clock_gettime(CLOCK_MONOTONIC,&ts),
 		(u_long)(ts.tv_sec*1000000000L+ts.tv_nsec);})));
 
-	d.leftupdate=3;
+	d.leftupdate=1;
 	d.win=urand(0,1);
 	snprintf(d.starter,sizeof(d.starter),"%s",starter);
 	
@@ -1591,7 +1591,7 @@ inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
  */
 int main(int argc, char **argv)
 {
-	int			lupdtid,n;
+	int			lupdtid,n,i;
 	telebot_user_t		me;
 
 	signal(SIGINT,leave);
@@ -1624,8 +1624,9 @@ LOOP:
 	updates=NULL;
 	lupdtid=0;
 
-	/* обновляем депы */
-	dep_update(_handle,c_id);
+	for (i=0;i<2;i++)
+		/* обновляем депы */
+		dep_update(_handle,c_id);
 
 	/* проверяем голосования */
 	check_vote(_handle,c_id);
