@@ -108,7 +108,7 @@ inline static int update_stats(stats_t *s, telebot_update_t *u);
 /*
  * SINAI-ZINO
  */
-#define DEP_LIMIT 3	/* максимум депов одновременно */
+#define DEP_LIMIT 2	/* максимум депов одновременно */
 const char *dep_notes[]={
 	/* chat gpt master comment */
 	"🍒", /* вишня — классика! */
@@ -137,7 +137,7 @@ typedef struct __dep_t {
 } dep_t;
 cvector(dep_t)	dep_vec=NULL;	/* депы */
 inline static void stop_all_dep(telebot_handler_t handle, long long int chat_id);
-inline static int dep_add(const char *starter, size_t *index);
+inline static int dep_add(const char *starter, size_t num, size_t *index);
 inline static void dep_endmsg(dep_t *d, telebot_handler_t handle, long long int chat_id);
 inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id, int id);
 inline static void dep_state(char *s, size_t slen, u_char win);
@@ -903,7 +903,7 @@ inline static void dep_endmsg(dep_t *d, telebot_handler_t handle, long long int 
  * суть тот кто депает. <index> - это индекс текущего депа,
  * нужно для вывода.
  */
-inline static int dep_add(const char *starter, size_t *index)
+inline static int dep_add(const char *starter, size_t num, size_t *index)
 {
 	dep_t d;
 
@@ -915,8 +915,10 @@ inline static int dep_add(const char *starter, size_t *index)
 	d.id=((({struct timespec ts;clock_gettime(CLOCK_MONOTONIC,&ts),
 		(u_long)(ts.tv_sec*1000000000L+ts.tv_nsec);})));
 
-	d.leftupdate=1;
-	d.win=urand(0,1);
+	d.leftupdate=num;	/* количество прокрутов */
+	d.win=urand(0,1);	/* выигрыш или нет? */
+
+	/* инициатор */
 	snprintf(d.starter,sizeof(d.starter),"%s",starter);
 	
 	cvector_push_back(dep_vec,d);
@@ -979,8 +981,7 @@ inline static void dep_update(telebot_handler_t handle, long long int chat_id)
 		if (dep_vec[n].leftupdate==0)
 			dep_del(dep_vec[n].id,handle,chat_id);
 		else if (dep_vec[n].msg_id!=0) {
-			dep_state(state,sizeof(state),(dep_vec[n].leftupdate
-				==1)?dep_vec[n].win:0);
+			dep_state(state,sizeof(state),((dep_vec[n].leftupdate-1)==0)?dep_vec[n].win:0);
 			snprintf(result,sizeof(result),"ДЕП %ld\n%s депнул!\n%s",
 				dep_vec[n].id,dep_vec[n].starter,state);
 			if ((telebot_edit_message_text(handle,chat_id,
@@ -1437,16 +1438,47 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* казино */
 	else if (!strcmp(cmd,"dep")) {
-		size_t	index;
+		size_t	index,arg;
 
+		if (!(p=strtok(NULL," "))) {
+			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 2!\n",1);
+			botmsg(handle,msg->chat->id,
+				"*Используйте*:\n  /dep ___<количество прокрутов>___\n"
+				"\n*Например:*\n  /dep ___2___ заношу прайс"
+			);
+			return;
+		}
+		
+		str_to_size_t(p,&arg,1,SIZE_MAX);
+		if (arg==0||arg>3) {
+			botmsg(handle,msg->chat->id,"Слишком много прокрутов: %d; диапазон (1-3)\n",arg);
+			return;
+		}
+			
 		/* добавляем деп */
-		if ((dep_add(get_name_from_msg(msg),&index))==-1) {
+		if ((dep_add(get_name_from_msg(msg),arg,&index))==-1) {
 			botmsg(handle,msg->chat->id,"Лимит депов исчерпан! (%d/%d)",
 				DEP_LIMIT,DEP_LIMIT);
 			return;
 		}
 
 		dep_startmsg(&dep_vec[index],handle,msg->chat->id,msg->message_id);
+		return;
+	}
+
+	/* Команда для остановки сразу всех запущенных депов в
+	 * текущий момент. Ее может использоввать только администратор,
+	 * а не фембой. */
+	else if (!strcmp(cmd,"depstopall")) {
+		if (msg->from->username) {
+			if (!strcmp(msg->from->username,admin_user)) {
+				stop_all_dep(_handle,c_id);
+				return;
+			}
+		}
+		botmsg(handle,msg->chat->id,"*Только администратор может"
+			" остановить депы!*\nА не фембой %s!",
+			get_name_from_msg(msg));
 		return;
 	}
 
@@ -1519,10 +1551,15 @@ inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
 		return -1;
 
 	c_id=msg->chat->id;
+
+	/* если это не группа group_id и group_id указан (т.е не 0),
+	 * то покидаем нахуй. */
 	verbose("%lld and %lld\n",c_id,group_id);
-	if (c_id!=group_id) {
-		telebot_leave_chat(handle,c_id);
-		return -1;
+	if (group_id!=0) {
+		if (c_id!=group_id) {
+			telebot_leave_chat(handle,c_id);
+			return -1;
+		}
 	}
 
 	/* зашли новые участники? */
@@ -1610,6 +1647,8 @@ int main(int argc, char **argv)
 	loadfromfile("data/group",group,sizeof(group));
 	if (strlen(group)>0)
 		group_id=strtoll(group,NULL,10);
+	else
+		group_id=0;
 	printf("%lld\n",group_id);
 	verbose("admin is \"%s\"",admin_user);
 
@@ -1635,9 +1674,10 @@ LOOP:
 	updates=NULL;
 	lupdtid=0;
 
-	for (i=0;i<2;i++)
-		/* обновляем депы */
-		dep_update(_handle,c_id);
+	if (cvector_size(dep_vec)>0)
+		for (i=0;i<4;i++)
+			/* обновляем депы */
+			dep_update(_handle,c_id);
 
 	/* проверяем голосования */
 	check_vote(_handle,c_id);
