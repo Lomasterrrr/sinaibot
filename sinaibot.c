@@ -123,27 +123,7 @@ const char *dep_notes[]={
 	"💰", /* мешок золота */
 	"🎰", /* сам автомат */
 };
-typedef struct __dep_t {
-	int	msg_id;	/* id сообщения с прокрутом (депом) */
-	char	starter[2048];	/* инициатор */
-	u_long	id;	/* id депа */
-	u_char	win;	/* победил? */
-
-	/* принцип работы таков,
-	 * 1. добавить dep.
-	 * 2. 3 раза обновить
-	 * 3. вывести результат.  */
-	int	leftupdate;	/* осталось обновлений */
-} dep_t;
-cvector(dep_t)	dep_vec=NULL;	/* депы */
-inline static void stop_all_dep(telebot_handler_t handle, long long int chat_id);
-inline static int dep_add(const char *starter, size_t num, size_t *index);
-inline static void dep_endmsg(dep_t *d, telebot_handler_t handle, long long int chat_id);
-inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id, int id);
 inline static void dep_state(char *s, size_t slen, u_char win);
-inline static void dep_del(u_long id, telebot_handler_t handle, long long int chat_id);
-inline static void dep_update(telebot_handler_t handle, long long int chat_id);
-inline static void stop_all_dep(telebot_handler_t handle, long long int chat_id);
 
 
 
@@ -255,7 +235,6 @@ inline static noreturn void leave(int sig)
 	(void)sig;
 	if (_handle) {
 		stop_all_vote(_handle,c_id);
-		stop_all_dep(_handle,c_id);
 		telebot_destroy(_handle);
 	}
 	if (updates)
@@ -800,7 +779,7 @@ inline static void dep_state(char *s, size_t slen, u_char win)
 	const char *save;
 	switch (win) {
 		case 0:
-			snprintf(s,slen,"%s%s%s%s\n%s%s%s%s\n%s%s%s%s\n",
+			snprintf(s,slen,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
 				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
 				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
 				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
@@ -817,7 +796,7 @@ inline static void dep_state(char *s, size_t slen, u_char win)
 			break;
 		case 1:
 			save=dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)];
-			snprintf(s,slen,"%s%s%s%s\n%s%s%s%s\n%s%s%s%s\n",
+			snprintf(s,slen,"     %s%s%s%s\n— %s%s%s%s —\n     %s%s%s%s\n",
 				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
 				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
 				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
@@ -830,182 +809,6 @@ inline static void dep_state(char *s, size_t slen, u_char win)
 			);
 			break;
 	}
-}
-
-
-
-
-/*
- * Выводит сообщение о начале депа, здесь, мастеру пришлось
- * наебнуть систему. Дело в том, что нужно после отправки,
- * получить id этого отправленного сообщения. Эта функция
- * получает и записывает в <d->msg_id>.
- */
-inline static void dep_startmsg(dep_t *d, telebot_handler_t handle, long long int chat_id, int id)
-{
-	char				state[2048];
-	char				result[USHRT_MAX];
-	telebot_core_response_t		response;
-	telebot_error_e			ret;
-
-	typedef struct telebot_handler_s
-	{
-	    telebot_core_handler_t *core_h;
-	    int offset;
-	} _telebot_hdata_t;
-
-	_telebot_hdata_t *_handle=(_telebot_hdata_t *)handle;
-
-	dep_state(state,sizeof(state),0);
-	snprintf(result,sizeof(result),"ДЕП %ld\n%s депнул!\n%s",
-		d->id,d->starter,state);
-
-	ret=telebot_core_send_message(_handle->core_h,chat_id,
-		result,NULL,false,false,id,NULL,&response);
-
-	/* искусство Json и Си */
-	if (ret==TELEBOT_ERROR_NONE&&response.data!=NULL) {
-		struct json_object *root=json_tokener_parse(response.data);
-		if (root) {
-			struct json_object *result;
-			if (json_object_object_get_ex(root,"result",&result)) {
-				struct json_object *msg_id_obj;
-				if (json_object_object_get_ex(result,"message_id",&msg_id_obj))
-					d->msg_id=json_object_get_int(msg_id_obj);
-			}
-			json_object_put(root);
-		}
-	}
-	else
-		verbose("failed send dep start messsage %d\n",ret);
-	telebot_core_put_response(&response);
-}
-
-
-
-
-/*
- * Выводит сообщение о окончании депа, победил или проебал.
- * аее.
- */
-inline static void dep_endmsg(dep_t *d, telebot_handler_t handle, long long int chat_id)
-{
-	char buf[USHRT_MAX];
-	snprintf(buf,sizeof(buf),"*%s %s*",d->starter,(d->win)?"ПОБЕДИЛ!":"проиграл :((((");
-	master_send_message(handle,chat_id,buf,false,false,d->msg_id,NULL);
-}
-
-
-
-
-/*
- * Создает деп, доабвляет его в вектор <dep_vec>, <starter> -
- * суть тот кто депает. <index> - это индекс текущего депа,
- * нужно для вывода.
- */
-inline static int dep_add(const char *starter, size_t num, size_t *index)
-{
-	dep_t d;
-
-	if (cvector_size(dep_vec)>=DEP_LIMIT)
-		return -1;
-	bzero(&d,sizeof(d));
-
-	/* master seed */
-	d.id=((({struct timespec ts;clock_gettime(CLOCK_MONOTONIC,&ts),
-		(u_long)(ts.tv_sec*1000000000L+ts.tv_nsec);})));
-
-	d.leftupdate=num;	/* количество прокрутов */
-	d.win=urand(0,1);	/* выигрыш или нет? */
-
-	/* инициатор */
-	snprintf(d.starter,sizeof(d.starter),"%s",starter);
-	
-	cvector_push_back(dep_vec,d);
-	if (index)
-		*index=cvector_size(dep_vec)-1;
-
-	return 0;
-	
-}
-
-
-
-
-/*
- * Удаляет нужный dep под <id>, и выводит сообщение о окончании.
- */
-inline static void dep_del(u_long id, telebot_handler_t handle, long long int chat_id)
-{
-	int n;
-
-	if (!dep_vec)
-		return;
-	if (cvector_empty(dep_vec))
-		return;
-	if (!handle)
-		return;
-
-	for (n=0;n<cvector_size(dep_vec);n++) {
-		if (dep_vec[n].id==id) {
-			dep_endmsg(&dep_vec[n],handle,chat_id);
-			cvector_erase(dep_vec,n);
-			return;
-		}
-	}
-}
-
-
-
-
-/*
- * Обновляет все депы. Если leftupdate == 0 значит это последнее
- * обновление, а значит функция удаляет этот деп, и выводит
- * сообщение о окончании. Если еще не 0, то изменяет сообщение
- * депа, делая анимацию прокрута.
- */
-inline static void dep_update(telebot_handler_t handle, long long int chat_id)
-{
-	char result[USHRT_MAX];
-	char state[2048];
-	int n;
-
-	if (!dep_vec)
-		return;
-	if (cvector_empty(dep_vec))
-		return;
-	if (!handle)
-		return;
-
-	for (n=cvector_size(dep_vec)-1;n>=0;n--) {
-		if (dep_vec[n].leftupdate==0)
-			dep_del(dep_vec[n].id,handle,chat_id);
-		else if (dep_vec[n].msg_id!=0) {
-			dep_state(state,sizeof(state),((dep_vec[n].leftupdate-1)==0)?dep_vec[n].win:0);
-			snprintf(result,sizeof(result),"ДЕП %ld\n%s депнул!\n%s",
-				dep_vec[n].id,dep_vec[n].starter,state);
-			if ((telebot_edit_message_text(handle,chat_id,
-					dep_vec[n].msg_id,NULL,result,"Markdown",
-					0,NULL))!=TELEBOT_ERROR_NONE)
-				verbose("failed edit msg for dep!");
-			--dep_vec[n].leftupdate;
-		}
-	}
-}
-
-
-
-
-/*
- * Останавливает все запущенные депы, и очищает из под
- * них память.
- */
-inline static void stop_all_dep(telebot_handler_t handle, long long int chat_id)
-{
-	int n;
-	for (n=cvector_size(dep_vec)-1;n>=0;n--)
-		dep_del(dep_vec[n].id,handle,chat_id);
-	cvector_clear(dep_vec);
 }
 
 
@@ -1438,47 +1241,72 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* казино */
 	else if (!strcmp(cmd,"dep")) {
-		size_t	index,arg;
+		char	buf[USHRT_MAX];
+		char	state[2048];
+		size_t	arg;
+		u_char	win;
+		int	m;
+		int	chance;
 
 		if (!(p=strtok(NULL," "))) {
 			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 2!\n",1);
 			botmsg(handle,msg->chat->id,
-				"*Используйте*:\n  /dep ___<количество прокрутов>___\n"
-				"\n*Например:*\n  /dep ___2___ заношу прайс"
+				"*Используйте*:\n  /dep ___<прайс>___\n"
+				"\n*Например:*\n  /dep ___1000___ заношу прайс"
 			);
 			return;
 		}
 		
 		str_to_size_t(p,&arg,1,SIZE_MAX);
-		if (arg==0||arg>3) {
-			botmsg(handle,msg->chat->id,"Слишком много прокрутов: %d; диапазон (1-3)\n",arg);
+		if (arg<1000) {
+			botmsg(handle,msg->chat->id,"Неверный ___<прайс>___ — %ld!"
+				"\nОн слишком нищий!\n",arg);
+			return;
+		} else if (arg>10000000) {
+			botmsg(handle,msg->chat->id,"Неверный ___<прайс>___ — %ld!"
+				"\nОн слишком большой!\n",arg);
 			return;
 		}
 			
-		/* добавляем деп */
-		if ((dep_add(get_name_from_msg(msg),arg,&index))==-1) {
-			botmsg(handle,msg->chat->id,"Лимит депов исчерпан! (%d/%d)",
-				DEP_LIMIT,DEP_LIMIT);
-			return;
-		}
+		/* master chance */
+		chance=urand(1,90);
 
-		dep_startmsg(&dep_vec[index],handle,msg->chat->id,msg->message_id);
-		return;
-	}
+		/* master win */
+		win=(urand(0,99)<chance);
 
-	/* Команда для остановки сразу всех запущенных депов в
-	 * текущий момент. Ее может использоввать только администратор,
-	 * а не фембой. */
-	else if (!strcmp(cmd,"depstopall")) {
-		if (msg->from->username) {
-			if (!strcmp(msg->from->username,admin_user)) {
-				stop_all_dep(_handle,c_id);
-				return;
-			}
-		}
-		botmsg(handle,msg->chat->id,"*Только администратор может"
-			" остановить депы!*\nА не фембой %s!",
-			get_name_from_msg(msg));
+		/* master mult */
+		m=(int)(1000/(chance/100.0)+urand(1,10));
+
+		dep_state(state,sizeof(state),win);
+
+		if (win)
+			snprintf(buf,sizeof(buf),
+				"___%s___\n"
+				"*Множитель прайса*: %d\n"
+				"*Шанс победы*: %d%%\n"
+				"*Формула*: ___%ld × %d___\n"
+				"\n%s\n"
+				"*ВЫИГРАНО — %ld$!*"
+				,curtime(0)
+				,m
+				,chance
+				,arg
+				,m
+				,state
+				,arg*m);
+		else
+			snprintf(buf,sizeof(buf),
+				"___%s___\n"
+				"*Шанс победы*: %d%%\n"
+				"\n%s\n"
+				"___ПРОИГРАНА!___\n"
+				,curtime(0)
+				,chance
+				,state);
+
+		master_send_message(handle,msg->chat->id,buf,false,
+			false,msg->message_id,NULL);
+
 		return;
 	}
 
@@ -1635,7 +1463,7 @@ inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
  */
 int main(int argc, char **argv)
 {
-	int			lupdtid,n,i;
+	int			lupdtid,n;
 	telebot_user_t		me;
 
 	signal(SIGINT,leave);
@@ -1673,11 +1501,6 @@ LOOP:
 	num_updates=0;
 	updates=NULL;
 	lupdtid=0;
-
-	if (cvector_size(dep_vec)>0)
-		for (i=0;i<4;i++)
-			/* обновляем депы */
-			dep_update(_handle,c_id);
 
 	/* проверяем голосования */
 	check_vote(_handle,c_id);
