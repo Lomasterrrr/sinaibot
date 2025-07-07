@@ -1335,8 +1335,10 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		while ((i=fgetc(f))!=EOF)
 			if (i=='\n')
 				n++;
-		if (n==0)
+		if (n==0) {
+			fclose(f);
 			return;
+		}
 		rewind(f);
 		i=urand(1,n);
 		n=0;
@@ -1350,6 +1352,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		}
 
 		fclose(f);
+		return;
 	}
 
 
