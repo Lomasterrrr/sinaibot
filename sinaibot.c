@@ -123,7 +123,7 @@ const char *dep_notes[]={
 	"💰", /* мешок золота */
 	"🎰", /* сам автомат */
 };
-inline static void dep_state(char *s, size_t slen, u_char win);
+inline static void dep_state(char *s, size_t slen, u_char win, u_char jackpot);
 
 
 
@@ -774,9 +774,17 @@ int cmpstrs(const char *str, ...)
  * длинною <slen>, если <win> = 1 то выводит победную
  * в ином случае нет.
  */
-inline static void dep_state(char *s, size_t slen, u_char win)
+inline static void dep_state(char *s, size_t slen, u_char win, u_char jackpot)
 {
 	const char *save;
+	if (jackpot) {
+		save="7️⃣", /* заветная семёрка */
+		snprintf(s,slen,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
+			save,save,save,save,save,save,save,save,save,save,save,save
+		);
+		return;
+		
+	}
 	switch (win) {
 		case 0:
 			snprintf(s,slen,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
@@ -1245,6 +1253,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		char	state[2048];
 		size_t	arg;
 		u_char	win;
+		u_char	jackpot;
 		int	m;
 		int	chance;
 
@@ -1274,12 +1283,18 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		/* master win */
 		win=(urand(0,99)<chance);
 
+		/* master jackpot */
+		jackpot=(urand(0,1000)==0);
+
 		/* master mult */
-		m=(int)(1000/(chance/100.0)+urand(1,10));
+		if (jackpot)
+			m=1000000;
+		else
+			m=(int)(1000/(chance/100.0)+urand(1,10));
 
-		dep_state(state,sizeof(state),win);
+		dep_state(state,sizeof(state),win,jackpot);
 
-		if (win)
+		if (win||jackpot)
 			snprintf(buf,sizeof(buf),
 				"___%s___\n"
 				"*Множитель прайса*: %d\n"
@@ -1308,6 +1323,33 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			false,msg->message_id,NULL);
 
 		return;
+	}
+
+	/* amen */
+	else if (!strcmp(cmd,"amen")) {
+		char	line[USHRT_MAX];
+		FILE	*f;
+
+		if (!(f=fopen("data/nz","r")))
+			return;
+		while ((i=fgetc(f))!=EOF)
+			if (i=='\n')
+				n++;
+		if (n==0)
+			return;
+		rewind(f);
+		i=urand(1,n);
+		n=0;
+		while (fgets(line,sizeof(line),f)) {
+			n++;
+			if (n==i) {
+				master_send_message(handle,msg->chat->id,line,false,
+					false,msg->message_id,NULL);
+				break;
+			}
+		}
+
+		fclose(f);
 	}
 
 
