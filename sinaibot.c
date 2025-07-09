@@ -1440,6 +1440,13 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 					" начало не может быть больше конца!");
 				return;
 			}
+			if ((e+1-s)>3) {
+				botmsg(handle,msg->chat->id,
+					"Неверный формат диапазона:"
+					" максимальное число строчек"
+					" для вывода 3 а не %ld!",(e+1-s));
+				return;
+			}
 		}
 		else if (is_digit_string(part3)) {
 			str_to_size_t(part3,&s,0,SIZE_MAX);
