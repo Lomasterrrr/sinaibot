@@ -1351,20 +1351,24 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			*dp,*cp;
 		char	line[USHRT_MAX];
 		FILE	*fp;
+		size_t	s,e;	/* start, end (for range) */
 
+		s=e=0;
 		if (!(p=strtok(NULL," "))) {
 			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 2!\n",1);
 			botmsg(handle,msg->chat->id,
 				"*Используйте*:\n  /amenl ___<позиция>___\n\n"
 				"*Формат позиции*:\n"
-				"  ___<книга>.<глава>:<строчка>___\n"
+				"  (a) ___<книга>.<глава>:<строчка>___\n"
+				"  (b) ___<книга>.<глава>:<от>___*-*___<до>___\n"
 
 				"\n*Книги суть*:\n___Мат. Мар. Лук. Иоан. Деян. Иак. 1Пет.\n2Пет. "
 				"1Иоан. 2Иоан. 3Иоан. Иуда. Рим.\n1Кор. 2Кор. "
 				"Гал. Еф. Фил. Кол. 1Фес.\n2Фес. 1Тим. 2Тим. "
 				"Тит. Филим. Евр. Отк.___\n"
 
-				"\n*Например:*\n  /amenl ___Лук.8:18___"
+				"\n*Например:*\n  /amenl ___Лук.8:18___\n"
+				"  /amenl ___1Кор.6:9-10___"
 			);
 			return;
 		}
@@ -1409,27 +1413,80 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 				" указать, — так называемые *цифры*.\n",part2);
 			return;
 		}
-		if (!is_digit_string(part3)) {
+
+		/* похоже это диапазон */
+		if ((p=strchr(part3,'-'))) {
+			if (!is_digit_string(p+1)) {
+				botmsg(handle,msg->chat->id,
+					"Неверный формат диапазона!");
+				return;
+			}
+			str_to_size_t(p+1,&e,0,SIZE_MAX);
+			bzero(line,sizeof(line));
+			dp=part3;
+			n=p-dp;
+			n=((n>=sizeof(line)))?sizeof(line)-1:n;
+			strncpy(line,part3,n);
+			line[n]='\0';
+			if (!is_digit_string(line)) {
+				botmsg(handle,msg->chat->id,
+					"Неверный формат диапазона!");
+				return;
+			}
+			str_to_size_t(line,&s,0,SIZE_MAX);
+			if (s>e) {
+				botmsg(handle,msg->chat->id,
+					"Неверный формат диапазона:"
+					" начало не может быть больше конца!");
+				return;
+			}
+		}
+		else if (is_digit_string(part3)) {
+			str_to_size_t(part3,&s,0,SIZE_MAX);
+		} else {
 			botmsg(handle,msg->chat->id,
 				"Строчка  ___<%s>___ — не найдена!\nПопробуйте"
 				" указать, — так называемые *цифры*.\n",part3);
 			return;
 		}
 
-		snprintf(pbuf,sizeof(pbuf),"%s%s:%s",part1,part2,part3);
+		snprintf(pbuf,sizeof(pbuf),"%s%s:%ld",part1,part2,s);
 
 		if (!(fp=fopen("data/nz","r")))
 			return;
+		bzero(line,sizeof(line));
 		rewind(fp);
 		n=0;
 		while (fgets(line,sizeof(line),fp)) {
 			if (strstr(line,pbuf)) {
 				master_send_message(handle,msg->chat->id,line,false,
 					false,msg->message_id,NULL);
+
+				if (e>0) {	/* this range */
+					++s;
+					for (;s<=e;s++) {
+						bzero(pbuf,sizeof(pbuf));
+						snprintf(pbuf,sizeof(pbuf),"%s%s:%ld",part1,part2,s);
+						while (fgets(line,sizeof(line),fp)) {
+							if (strstr(line,pbuf)) {
+								master_send_message(handle,msg->chat->id,line,false,
+									false,msg->message_id,NULL);
+								n=1;
+								break;
+							}
+							else {
+								n=0;
+								goto out;
+							}
+						}
+					}
+				}
+
 				n=1;
 				break;
 			}
 		}
+out:
 		if (!n)
 			botmsg(handle,msg->chat->id,"Строчка не найдена!");
 
