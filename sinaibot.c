@@ -1344,6 +1344,36 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
+	/* extreme (ctrl+c, ctrl+v) */
+	else if (!strcmp(cmd,"extreme")) {
+		char	line[USHRT_MAX];
+		FILE	*fp;
+
+		if (!(fp=fopen("data/rus","r")))
+			return;
+		while ((i=fgetc(fp))!=EOF)
+			if (i=='\n')
+				n++;
+		if (n==0) {
+			fclose(fp);
+			return;
+		}
+		rewind(fp);
+		i=urand(1,n);
+		n=0;
+		while (fgets(line,sizeof(line),fp)) {
+			n++;
+			if (n==i) {
+				master_send_message(handle,msg->chat->id,line,false,
+					false,msg->message_id,NULL);
+				break;
+			}
+		}
+
+		fclose(fp);
+		return;
+	}
+
 	/* amenl */
 	else if (!strcmp(cmd,"amenl")) {
 		char	part1[2048],part2[2048],
