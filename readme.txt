@@ -66,6 +66,7 @@
 				8. /dep
 				9. /amen
 				10. /amenl
+				11. /extreme
 
 			КОМАНДА AE
 
