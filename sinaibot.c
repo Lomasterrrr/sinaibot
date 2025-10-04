@@ -41,19 +41,20 @@
 #include <unistd.h>
 #include <stdnoreturn.h>
 
+#include "holystd.h"
 #include "cvector.h"
 #include <json-c/json.h>
 #include <telebot.h>
 #include <telebot-core.h>
 
 telebot_handler_t	_handle;
-char			token[BUFSIZ];
-char			admin_user[BUFSIZ];
-char			group[BUFSIZ];
-long long int		group_id;
+I8			token[BUFSIZ];
+I8			admin_user[BUFSIZ];
+I8			group[BUFSIZ];
+I64		group_id;
 telebot_update_t	*updates;
-int			num_updates;
-long long int		c_id;
+I32			num_updates;
+I64		c_id;
 
 /*
  * ГОЛОСОВАНИЯ
@@ -61,54 +62,54 @@ long long int		c_id;
 #define VOTE_LIMIT 3	/* максимум голосований */
 typedef struct __vote_t {
 	/* эти поля указываются из команды */
-	char		msg[USHRT_MAX];	/* сообщение */
-	size_t		timel;	/* двительность в сек */
-	u_char		type;	/* тип голосования */
+	I8		msg[USHRT_MAX];	/* сообщение */
+	USZ		timel;	/* двительность в сек */
+	U8		type;	/* тип голосования */
 
-	char		starter[2048];	/* инициатор */
+	I8		starter[2048];	/* инициатор */
 	u_long		id;	/* номер голосования */
-	size_t		AE;	/* за */
-	size_t		NO;	/* против */
-	u_char		admin_flag;	/* голосовал ли администратор? */
-	u_char		senators_flag;	/* могут голосовать только /senators? */
+	USZ		AE;	/* за */
+	USZ		NO;	/* против */
+	U8		admin_flag;	/* голосовал ли администратор? */
+	U8		senators_flag;	/* могут голосовать только /senators? */
 	time_t		timestamp;	/* точка старта */
 
 	/* команды для за/против/остановка */
-	char		cmd_ae[512],	/* за */
+	I8		cmd_ae[512],	/* за */
 			cmd_no[512],	/* против */
 			cmd_stop[512];	/* стоп */
 
 	/* голосовавшие за/против */
-	cvector(char *) users_ae;	/* за */
-	cvector(char *) users_no;	/* против */
+	cvector(I8 *) users_ae;	/* за */
+	cvector(I8 *) users_no;	/* против */
 } vote_t;
 cvector(vote_t)		vote_vec=NULL;		/* голосования */
-inline static int cmpstr(const void *a, const void *b) { return strcmp((const char *)a, (const char *)b); }
-inline static void stop_all_vote(telebot_handler_t handle, long long int chat_id);
-inline static void free_string(void *str) { if (str) free(*(char **)str); }
-inline static int vote_add(const char *msg, const char *starter, const char *timel,
-	const char *type, const char *flag, vote_t *tmp);
-inline static void vote_del(u_long id, telebot_handler_t handle, long long int chat_id);
-inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long int chat_id);
-inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long int chat_id);
+inline static I32 cmpstr(const U0 *a, const U0 *b) { return strcmp((const I8 *)a, (const I8 *)b); }
+inline static U0 stop_all_vote(telebot_handler_t handle, I64 chat_id);
+inline static U0 free_string(U0 *str) { if (str) free(*(I8 **)str); }
+inline static I32 vote_add(const I8 *msg, const I8 *starter, const I8 *timel,
+	const I8 *type, const I8 *flag, vote_t *tmp);
+inline static U0 vote_del(u_long id, telebot_handler_t handle, I64 chat_id);
+inline static U0 vote_startmsg(vote_t *v, telebot_handler_t handle, I64 chat_id);
+inline static U0 vote_endmsg(vote_t *v, telebot_handler_t handle, I64 chat_id);
 
 /*
  * СТАТИСТИКА
  */
 typedef struct __stats_t {
 	time_t tstamp;	/* точка старта */
-	size_t n_messages;	/* сообщений */
-	size_t n_join;	/* зашло новых */
-	size_t n_total;	/* общее число каких либо действий */
+	USZ n_messages;	/* сообщений */
+	USZ n_join;	/* зашло новых */
+	USZ n_total;	/* общее число каких либо действий */
 } stats_t;
 stats_t h12;	/* за 12 часов */
-inline static int incsafe(size_t *v, size_t n);
-inline static int update_stats(stats_t *s, telebot_update_t *u);
+inline static I32 incsafe(USZ *v, USZ n);
+inline static I32 update_stats(stats_t *s, telebot_update_t *u);
 
 /*
  * КАЗИНО
  */
-const char *dep_notes[]={
+const I8 *dep_notes[]={
 	/* chat gpt master comment */
 	"🍒", /* вишня — классика! */
 	"🍋", /* лимон — из древних аппаратов */
@@ -122,7 +123,7 @@ const char *dep_notes[]={
 	"💰", /* мешок золота */
 	"🎰", /* сам автомат */
 };
-inline static void dep_state(char *s, size_t slen, u_char win, u_char jackpot);
+inline static U0 dep_state(I8 *s, USZ slen, U8 win, U8 jackpot);
 
 
 
@@ -132,16 +133,16 @@ inline static void dep_state(char *s, size_t slen, u_char win, u_char jackpot);
  * данных, формата: VERBOSE	<данные>. Выводит все в stderr;
  * сама ставит \n в конце; принимает форматирование.
  */
-inline static void verbose(const char *fmt, ...)
+inline static U0 verbose(const I8 *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap,fmt);
 	if (fmt) {
-		(void)fprintf(stderr,"VERBOSE\t");
-		(void)vfprintf(stderr,fmt,ap);
+		(U0)fprintf(stderr,"VERBOSE\t");
+		(U0)vfprintf(stderr,fmt,ap);
 	}
-	(void)fputc(0x0a,stderr);
+	(U0)fputc(0x0a,stderr);
 	va_end(ap);
 }
 
@@ -152,13 +153,13 @@ inline static void verbose(const char *fmt, ...)
  * Универсальная функция поиска по векторами cvector, она
  * принимает вектор <vec>, то что надо найти <target>, и
  * указатель на функцию <cmp>, которой она будет сравнивать.
- * Функция cmp должна возвращать 0 в int в случае успеха, и
- * любое другое число int в случае провала.
+ * Функция cmp должна возвращать 0 в I32 в случае успеха, и
+ * любое другое число I32 в случае провала.
  */
-inline static int cvectorfind(void **vec, const void *target,
-		int(*cmp)(const void *, const void *))
+inline static I32 cvectorfind(U0 **vec, const U0 *target,
+		I32(*cmp)(const U0 *, const U0 *))
 {
-	size_t n;
+	USZ n;
 
 	if (!vec)
 		return -1;
@@ -169,7 +170,7 @@ inline static int cvectorfind(void **vec, const void *target,
 
 	for (n=0;n<cvector_size(vec);++n)
 		if (cmp(vec[n],target)==0)
-			return (int)n;
+			return (I32)n;
 
 	return -1;
 }
@@ -185,9 +186,9 @@ inline static int cvectorfind(void **vec, const void *target,
  * Формат даты: год-месяц-день день-недели-сокращенный
  * 		час:минута:секунда часовой-пояс
  */
-inline static const char *curtime(time_t tstamp)
+inline static const I8 *curtime(time_t tstamp)
 {
-	static char	date[512];
+	static I8	date[512];
 	struct tm	*tp;
 	time_t		now;
 
@@ -215,9 +216,9 @@ inline static const char *curtime(time_t tstamp)
  * покидает нас с кодом 0. Привязана к сигналу
  * Ctrl+c.
  */
-inline static noreturn void leave(int sig)
+inline static noreturn U0 leave(I32 sig)
 {
-	(void)sig;
+	(U0)sig;
 	if (_handle) {
 		stop_all_vote(_handle,c_id);
 		telebot_destroy(_handle);
@@ -237,7 +238,7 @@ inline static noreturn void leave(int sig)
  * милисекунд. Ну т.е это sleep() который принимает не
  * секунды, а милисекунды.
  */
-inline static void stopms(int ms)
+inline static U0 stopms(I32 ms)
 {
 	struct timespec ts;
 	ts.tv_sec=ms/1000;
@@ -254,16 +255,16 @@ inline static void stopms(int ms)
  * теперь: ERR	<данные>. Сама ставит \n; имеет форматирование;
  * безворвратная.
  */
-inline static noreturn void errx(int eval, const char *fmt, ...)
+inline static noreturn U0 errx(I32 eval, const I8 *fmt, ...)
 {
 	va_list ap;
 
 	va_start(ap,fmt);
 	if (fmt) {
-		(void)fprintf(stderr,"ERR\t");
-		(void)vfprintf(stderr,fmt,ap);
+		(U0)fprintf(stderr,"ERR\t");
+		(U0)vfprintf(stderr,fmt,ap);
 	}
-	(void)fputc(0x0a,stderr);
+	(U0)fputc(0x0a,stderr);
 	va_end(ap);
 	leave(eval);
 }
@@ -272,16 +273,16 @@ inline static noreturn void errx(int eval, const char *fmt, ...)
 
 
 /*
- * Функция для конвертации строки в size_t с указанным диапазоном и
+ * Функция для конвертации строки в USZ с указанным диапазоном и
  * с проверкой всех ошибок. <s> - суть строка; <out> - адрес
- * переменной size_t куда будет записан результат; <min>/<max> -
+ * переменной USZ куда будет записан результат; <min>/<max> -
  * диапазон, минимальное/максимальное. В случае ошибки ставит *out
  * в 0.
  */
-inline static void str_to_size_t(const char *s, size_t *out,
-		size_t min, size_t max)
+inline static U0 str_to_USZ(const I8 *s, USZ *out,
+		USZ min, USZ max)
 {
-	char			*endp;
+	I8			*endp;
 	unsigned long long	val;
 
 	if (!s||!*s||!out) {
@@ -289,7 +290,7 @@ inline static void str_to_size_t(const char *s, size_t *out,
 			*out=0;
 		return;
 	}
-	while (isspace((u_char)*s))
+	while (isspace((U8)*s))
 		s++;
 	if (*s=='-') {
 		verbose("only positive numbers");
@@ -303,7 +304,7 @@ inline static void str_to_size_t(const char *s, size_t *out,
 		*out=0;
 		return;
 	}
-	while (isspace((u_char)*endp))
+	while (isspace((U8)*endp))
 		endp++;
 	if (*endp!='\0') {
 		verbose("failed convert %s in num",s);
@@ -317,7 +318,7 @@ inline static void str_to_size_t(const char *s, size_t *out,
 		return;
 	}
 
-	*out=(size_t)val;
+	*out=(USZ)val;
 }
 
 
@@ -327,14 +328,14 @@ inline static void str_to_size_t(const char *s, size_t *out,
  * Отправляет сообщение подобно функции telebot_send_message, но
  * перебирает все кодировки.
  */
-telebot_error_e master_send_message(telebot_handler_t handle, long long int chat_id,
-		const char *message, bool disable_web_page_preview,
-		bool disable_notification, int reply_to_message_id,
-		void *reply_markup)
+telebot_error_e master_send_message(telebot_handler_t handle, I64 chat_id,
+		const I8 *message, bool disable_web_page_preview,
+		bool disable_notification, I32 reply_to_message_id,
+		U0 *reply_markup)
 {
-	const char	*modes[]={"Markdown","MarkdownV2","HTML",NULL};
+	const I8	*modes[]={"Markdown","MarkdownV2","HTML",NULL};
 	telebot_error_e	ret;
-	int		i;
+	I32		i;
 
 	for (i=0;i<4;i++) {
 		ret=telebot_send_message(handle,chat_id,message,modes[i],
@@ -357,10 +358,10 @@ telebot_error_e master_send_message(telebot_handler_t handle, long long int chat
  * Отправляет с бота указанное сообщение; поддерживает также
  * форматирование. <m> - суть разметка; <mid> - id сообщения.
  */
-inline static void botmsg(telebot_handler_t handle, long long int chat_id,
-		 const char *fmt, ...)
+inline static U0 botmsg(telebot_handler_t handle, I64 chat_id,
+		 const I8 *fmt, ...)
 {
-	char	msg[USHRT_MAX];
+	I8	msg[USHRT_MAX];
 	va_list	ap;
 
 	va_start(ap,fmt);
@@ -383,8 +384,8 @@ inline static void botmsg(telebot_handler_t handle, long long int chat_id,
  * созданных объект добавляет в вектор vote_vec. А еще
  * копирует его по адресу <tmp> (это чтобы потом вывести).
  */
-inline static int vote_add(const char *msg, const char *starter,
-		const char *timel, const char *type, const char
+inline static I32 vote_add(const I8 *msg, const I8 *starter,
+		const I8 *timel, const I8 *type, const I8
 		*flag, vote_t *tmp)
 {
 	vote_t v;
@@ -393,7 +394,7 @@ inline static int vote_add(const char *msg, const char *starter,
 		return -1;
 
 	memset(&v,0,sizeof(v));
-	str_to_size_t(timel,&v.timel,0,SIZE_MAX);
+	str_to_USZ(timel,&v.timel,0,SIZE_MAX);
 	v.senators_flag=flag[0];
 	v.type=type[0];
 
@@ -421,13 +422,13 @@ inline static int vote_add(const char *msg, const char *starter,
 
 
 /*
- * Соединяет вектор (char *) в строку, которую запиисывает в <buf>,
+ * Соединяет вектор (I8 *) в строку, которую запиисывает в <buf>,
  * на длинну <buflen>. Соединяет через ';'; если элементов нету
  * то просто запишет в <buf>: "никто;".
  */
-inline static const char *joinvec(char *buf, size_t buflen, cvector(char *) vec)
+inline static const I8 *joinvec(I8 *buf, USZ buflen, cvector(I8 *) vec)
 {
-	size_t i;
+	USZ i;
 	if (!buf||!buflen||!vec)
 		return NULL;
 	buf[0]='\0';
@@ -451,7 +452,7 @@ inline static const char *joinvec(char *buf, size_t buflen, cvector(char *) vec)
 /*
  * Выводит сообщение о старте голосования.
  */
-inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long int chat_id)
+inline static U0 vote_startmsg(vote_t *v, telebot_handler_t handle, I64 chat_id)
 {
 	botmsg(handle,chat_id,
 		"*Голосование* — \"%s\";\n"
@@ -475,9 +476,9 @@ inline static void vote_startmsg(vote_t *v, telebot_handler_t handle, long long 
 /*
  * Выводит сообщение о окончании голосования.
  */
-inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long int chat_id)
+inline static U0 vote_endmsg(vote_t *v, telebot_handler_t handle, I64 chat_id)
 {
-	char	ybuf[BUFSIZ],
+	I8	ybuf[BUFSIZ],
 		nbuf[BUFSIZ];
 	
 	joinvec(ybuf,sizeof(ybuf),v->users_ae);
@@ -506,9 +507,9 @@ inline static void vote_endmsg(vote_t *v, telebot_handler_t handle, long long in
  * id голосования). Также выводит сообщение о окончании голосования.
  * Помимо этого, очищает память из под элементов которые этого требуют.
  */
-inline static void vote_del(u_long id, telebot_handler_t handle, long long int chat_id)
+inline static U0 vote_del(u_long id, telebot_handler_t handle, I64 chat_id)
 {
-	int n;
+	I32 n;
 
 	if (!vote_vec)
 		return;
@@ -540,9 +541,9 @@ inline static void vote_del(u_long id, telebot_handler_t handle, long long int c
  * Останавливает все голосования с помощью функции vote_del использованной
  * в цикле. В конце очищает вектор, на всякий случай.
  */
-inline static void stop_all_vote(telebot_handler_t handle, long long int chat_id)
+inline static U0 stop_all_vote(telebot_handler_t handle, I64 chat_id)
 {
-	int n;
+	I32 n;
 	for (n=cvector_size(vote_vec)-1;n>=0;n--)
 		vote_del(vote_vec[n].id,handle,chat_id);
 	cvector_clear(vote_vec);
@@ -556,9 +557,9 @@ inline static void stop_all_vote(telebot_handler_t handle, long long int chat_id
  * завершится? И завершает те которые уже должны. Она вызывает каждую
  * итерацию основного цикла.
  */
-inline static void check_vote(telebot_handler_t handle, long long int chat_id)
+inline static U0 check_vote(telebot_handler_t handle, I64 chat_id)
 {
-	int n;
+	I32 n;
 	for (n=cvector_size(vote_vec)-1;n>=0;n--) {
 
 		/* Если тип голосования суть B, то голосование завершается
@@ -581,14 +582,14 @@ inline static void check_vote(telebot_handler_t handle, long long int chat_id)
 
 /*
  * Генерирует (псевдо?)рандомное число в диапазоне указанном в аргументах,
- * а точнее, <min> и <max>. Возвращает его в u_int (32 bit unsigned int).
+ * а точнее, <min> и <max>. Возвращает его в U32 (32 bit unsigned int).
  * Генерирует на основе /dev/random, с помощью функции getrandom. В случае
  * ошибки вернет 0.
  */
-inline static u_int urand(u_int min, u_int max)
+inline static U32 urand(U32 min, U32 max)
 {
-	u_int	random,range;
-	ssize_t	n;
+	U32	random,range;
+	USSZ	n;
 
 	if (min>max)
 		return 1;
@@ -596,8 +597,8 @@ inline static u_int urand(u_int min, u_int max)
 	range=(max>=min)?(max-min+1):
 		(UINT_MAX-min+1);
 
-	return ((n=getrandom(&random, sizeof(u_int),GRND_NONBLOCK
-		|GRND_RANDOM))==-1||(n!=sizeof(u_int))?0:
+	return ((n=getrandom(&random, sizeof(U32),GRND_NONBLOCK
+		|GRND_RANDOM))==-1||(n!=sizeof(U32))?0:
 		((min+(random%range))));
 }
 
@@ -608,11 +609,11 @@ inline static u_int urand(u_int min, u_int max)
  * Проверяет является ли строка <str> числом, или нет. Если
  * число вернет 1, если нет, 0.
  */
-inline static int is_digit_string(const char *str)
+inline static I32 is_digit_string(const I8 *str)
 {
-	char *endp;
+	I8 *endp;
 	errno=0;
-	(void)strtol(str,&endp,10);
+	(U0)strtol(str,&endp,10);
 	return *endp=='\0'&&errno==0;
 }
 
@@ -625,7 +626,7 @@ inline static int is_digit_string(const char *str)
  * суть: 1. username; 2. first name; 3. last name. Это нужно
  * дабы избежать ошибок segmentation fault.
  */
-inline static const char *get_name_from_msg(telebot_message_t *msg)
+inline static const I8 *get_name_from_msg(telebot_message_t *msg)
 {
 	if (!msg)
 		return "none";
@@ -650,9 +651,9 @@ inline static const char *get_name_from_msg(telebot_message_t *msg)
  * Проверяет содежится ли ник <input> в файле data/senators.
  * Если содержится, то возвращает 1, если нет то 0.
  */
-inline static int is_senator(const char *in)
+inline static I32 is_senator(const I8 *in)
 {
-	char	line[USHRT_MAX];
+	I8	line[USHRT_MAX];
 	FILE	*fp;
 
 	bzero(line,sizeof(line));
@@ -682,10 +683,10 @@ inline static int is_senator(const char *in)
  * Удаляет \n, если он есть в конце строчки, это нужно чтобы
  * считать токен корректно.
  */
-inline static void loadfromfile(const char *filename,
-		 char *lbuf, size_t lbufsiz)
+inline static U0 loadfromfile(const I8 *filename,
+		 I8 *lbuf, USZ lbufsiz)
 {
-	size_t	n;
+	USZ	n;
 	FILE	*f;
 
 	if (!(f=fopen(filename,"r")))
@@ -708,22 +709,22 @@ inline static void loadfromfile(const char *filename,
 /*
  * Замена для strcasestr (strstr но без учета регистра).
  */
-char *my_strcasestr(const char *str, const char *word)
+I8 *my_strcasestr(const I8 *str, const I8 *word)
 {
-	const char	*sp;
-	size_t		slen;
+	const I8	*sp;
+	USZ		slen;
 
 	if (!str||!word)
 		return NULL;
 	slen=strlen(word);
 	if (slen==0)
-		return (char*)str;
+		return (I8*)str;
 	sp=str;
 	while (*sp) {
 		if (strlen(sp)<slen)
 			break;
 		if (strncasecmp(sp,word,slen)==0)
-			return (char*)sp;
+			return (I8*)sp;
 		sp++;
 	}
 	return NULL;
@@ -737,13 +738,13 @@ char *my_strcasestr(const char *str, const char *word)
  * аргументов (строк). Последний элемент в <...> должен
  * быть NULL! Не влияет регистр!
  */
-int cmpstrs(const char *str, ...)
+I32 cmpstrs(const I8 *str, ...)
 {
-	const char	*sp;
+	const I8	*sp;
 	va_list		ap;
 
 	va_start(ap,str);
-	while ((sp=va_arg(ap,const char *))) {
+	while ((sp=va_arg(ap,const I8 *))) {
 		if (!strcasecmp(str,sp)) {
 			va_end(ap);
 			return 1;
@@ -762,9 +763,9 @@ int cmpstrs(const char *str, ...)
  * длинною <slen>, если <win> = 1 то выводит победную
  * в ином случае нет.
  */
-inline static void dep_state(char *out, size_t outsiz, u_char win, u_char jackpot)
+inline static U0 dep_state(I8 *out, USZ outsiz, U8 win, U8 jackpot)
 {
-	const char *save;
+	const I8 *save;
 	if (jackpot) {
 		save="7️⃣", /* заветная семёрка */
 		snprintf(out,outsiz,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
@@ -775,32 +776,32 @@ inline static void dep_state(char *out, size_t outsiz, u_char win, u_char jackpo
 	switch (win) {
 		case 0:
 			snprintf(out,outsiz,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)]
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)]
 			);
 			break;
 		case 1:
-			save=dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)];
+			save=dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)];
 			snprintf(out,outsiz,"     %s%s%s%s\n— %s%s%s%s —\n     %s%s%s%s\n",
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
 				save,save,save,save,
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const char*))-1)]
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
+				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)]
 			);
 			break;
 	}
@@ -814,11 +815,11 @@ inline static void dep_state(char *out, size_t outsiz, u_char win, u_char jackpo
  * если нашло, выводит свойственное предупреждение и возвращает
  * 0, если не нашло, то возвращает -1.
  */
-inline static int systemd_virus(telebot_handler_t handle, telebot_message_t *msg)
+inline static I32 systemd_virus(telebot_handler_t handle, telebot_message_t *msg)
 {
-	const char	*sp;
-	int		n;
-	const char	*words[]={
+	const I8	*sp;
+	I32		n;
+	const I8	*words[]={
 		"systemd","системд","центос","цент ос",
 		"centos","cеntos","cеntоs","centos",
 		"cent os","ред хат","redhat","red hat",
@@ -829,7 +830,7 @@ inline static int systemd_virus(telebot_handler_t handle, telebot_message_t *msg
 	if (!handle||!msg)
 		return -1;
 
-	for (n=0,sp=NULL;n<sizeof(words)/sizeof(const char*);n++)
+	for (n=0,sp=NULL;n<sizeof(words)/sizeof(const I8*);n++)
 		if (((sp=my_strcasestr(msg->text,words[n]))))
 			break;
 
@@ -864,11 +865,11 @@ inline static int systemd_virus(telebot_handler_t handle, telebot_message_t *msg
 
 
 /*
- * Увеличивает переменную size_t <ptr> на <n>, но проверяет
+ * Увеличивает переменную USZ <ptr> на <n>, но проверяет
  * переполнение, если оно будет после увелечения
  * возвращает 0, если нет 1.
  */
-inline static int incsafe(size_t *ptr, size_t n)
+inline static I32 incsafe(USZ *ptr, USZ n)
 {
 	if (!ptr)
 		return 0;
@@ -884,7 +885,7 @@ inline static int incsafe(size_t *ptr, size_t n)
 /*
  * Обновляет статистику <stats> на основе обновления <u>.
  */
-inline static int update_stats(stats_t *stats, telebot_update_t *u)
+inline static I32 update_stats(stats_t *stats, telebot_update_t *u)
 {
 	if (!stats||!u)
 		return -1;
@@ -918,11 +919,11 @@ inline static int update_stats(stats_t *stats, telebot_update_t *u)
  * Обрабатывает команды полученные ботом, вызывает соответствующие
  * им вещи. За все команды отвечает она.
  */
-inline static void command(telebot_handler_t handle, telebot_message_t *msg)
+inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 {
 	cvector_iterator(vote_t)	it=NULL;
-	char				*cmd=NULL,*p=NULL;
-	int				n=0,i=0;
+	I8				*cmd=NULL,*p=NULL;
+	I32				n=0,i=0;
 
 	if (!handle)
 		return;
@@ -955,11 +956,11 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 				botmsg(handle,msg->chat->id,"Ваше имя не позволяет вам голосовать!");
 				return;
 			}
-			if ((cvectorfind((void **)it->users_ae,msg->from->first_name,cmpstr))!=-1) {
+			if ((cvectorfind((U0 **)it->users_ae,msg->from->first_name,cmpstr))!=-1) {
 				botmsg(handle,msg->chat->id,"Вы уже голосовали! (за)");
 				return;
 			}
-			if ((cvectorfind((void **)it->users_no,msg->from->first_name,cmpstr))!=-1) {
+			if ((cvectorfind((U0 **)it->users_no,msg->from->first_name,cmpstr))!=-1) {
 				botmsg(handle,msg->chat->id,"Вы уже голосовали! (против)");
 				return;
 			}
@@ -1033,13 +1034,13 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	 * парсит аргументы, проверяет их, выводит соответствующие ошибки.
 	 * Если ошибок нет, добавляет это голосование. */
 	if (!strcmp(cmd,"vote")) {
-		char		v_msg[USHRT_MAX];
-		char		v_time[USHRT_MAX];
-		char		v_type[USHRT_MAX];
-		char		v_flag[USHRT_MAX];
-		char		*words[512];
+		I8		v_msg[USHRT_MAX];
+		I8		v_time[USHRT_MAX];
+		I8		v_type[USHRT_MAX];
+		I8		v_flag[USHRT_MAX];
+		I8		*words[512];
 		vote_t		tmp;
-		size_t		len;
+		USZ		len;
 
 		v_msg[0]=v_time[0]=v_type[0]='\0';
 
@@ -1139,10 +1140,10 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	/* Команда для вывода списка снаторов, из файла data/
 	 * senators. */
 	else if (!strcmp(cmd,"senlist")) {
-		char	line[USHRT_MAX];
-		char	buf[USHRT_MAX]; 
+		I8	line[USHRT_MAX];
+		I8	buf[USHRT_MAX]; 
 		FILE	*f;
-		size_t	len=0;
+		USZ	len=0;
 
 		bzero(buf,sizeof(buf));
 		bzero(line,sizeof(line));
@@ -1176,8 +1177,8 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 	/* Команда для пинга всех снаторов, из файла data/
 	 * senators. */
 	else if (!strcmp(cmd,"senping")) {
-		char	line[USHRT_MAX-5];
-		char	user[USHRT_MAX];
+		I8	line[USHRT_MAX-5];
+		I8	user[USHRT_MAX];
 		FILE	*f;
 
 		if (msg->from->username)
@@ -1238,13 +1239,13 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* казино */
 	else if (!strcmp(cmd,"dep")) {
-		char	buf[USHRT_MAX];
-		char	state[2048];
-		size_t	arg;
-		u_char	win;
-		u_char	jackpot;
-		int	m;
-		int	chance;
+		I8	buf[USHRT_MAX];
+		I8	state[2048];
+		USZ	arg;
+		U8	win;
+		U8	jackpot;
+		I32	m;
+		I32	chance;
 
 		if (!(p=strtok(NULL," "))) {
 			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 2!\n",1);
@@ -1255,7 +1256,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			return;
 		}
 		
-		str_to_size_t(p,&arg,1,SIZE_MAX);
+		str_to_USZ(p,&arg,1,SIZE_MAX);
 		if (arg<1000) {
 			botmsg(handle,msg->chat->id,"Неверный ___<прайс>___ — %ld!"
 				"\nОн слишком нищий!\n",arg);
@@ -1279,7 +1280,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 		if (jackpot)
 			m=1000000;
 		else
-			m=(int)(1000/(chance/100.0)+urand(1,10));
+			m=(I32)(1000/(chance/100.0)+urand(1,10));
 
 		dep_state(state,sizeof(state),win,jackpot);
 
@@ -1316,7 +1317,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* amen */
 	else if (!strcmp(cmd,"amen")) {
-		char	line[USHRT_MAX];
+		I8	line[USHRT_MAX];
 		FILE	*fp;
 
 		if (!(fp=fopen("data/nz","r")))
@@ -1346,7 +1347,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* extreme (ctrl+c, ctrl+v) */
 	else if (!strcmp(cmd,"extreme")) {
-		char	line[USHRT_MAX];
+		I8	line[USHRT_MAX];
 		FILE	*fp;
 
 		if (!(fp=fopen("data/rus","r")))
@@ -1376,12 +1377,12 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* amenl */
 	else if (!strcmp(cmd,"amenl")) {
-		char	part1[2048],part2[2048],
+		I8	part1[2048],part2[2048],
 			part3[2048],pbuf[USHRT_MAX],
 			*dp,*cp;
-		char	line[USHRT_MAX];
+		I8	line[USHRT_MAX];
 		FILE	*fp;
-		size_t	s,e;	/* start, end (for range) */
+		USZ	s,e;	/* start, end (for range) */
 
 		s=e=0;
 		if (!(p=strtok(NULL," "))) {
@@ -1451,7 +1452,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 					"Неверный формат диапазона!");
 				return;
 			}
-			str_to_size_t(p+1,&e,0,SIZE_MAX);
+			str_to_USZ(p+1,&e,0,SIZE_MAX);
 			bzero(line,sizeof(line));
 			dp=part3;
 			n=p-dp;
@@ -1463,7 +1464,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 					"Неверный формат диапазона!");
 				return;
 			}
-			str_to_size_t(line,&s,0,SIZE_MAX);
+			str_to_USZ(line,&s,0,SIZE_MAX);
 			if (s>e) {
 				botmsg(handle,msg->chat->id,
 					"Неверный формат диапазона:"
@@ -1479,7 +1480,7 @@ inline static void command(telebot_handler_t handle, telebot_message_t *msg)
 			}
 		}
 		else if (is_digit_string(part3)) {
-			str_to_size_t(part3,&s,0,SIZE_MAX);
+			str_to_USZ(part3,&s,0,SIZE_MAX);
 		} else {
 			botmsg(handle,msg->chat->id,
 				"Строчка  ___<%s>___ — не найдена!\nПопробуйте"
@@ -1537,7 +1538,7 @@ out:
 	 * Источники:
 	 * https://oldteamhost.github.io/src/pages/sinai.html#section-3
 	 * https://chatgpt.com/ */
-	const char *femboy_lang[]={
+	const I8 *femboy_lang[]={
 		":3", "OwO", "oWo", ">.<", "👉👈", "🥺", "^^", ">w<", ":<",
 		">3", "\\:c", "UwU", "o.o", ":>", "<3", "\\:O", "uWu", ">W<",
 		"\\:C", "🥺🥺", "🥺🥺🥺", "hewwo~ how awe u~", "senpai~",
@@ -1556,8 +1557,8 @@ out:
 		"*floats like a cloud*", "*dreamy eyes*", "glomp~", "paws up! *meow*",
 		"uwu >w<", "*snuggles into your arms*", "💕", "🥺💖", "💖","femboy"
 	};
-	char femboy_speak[USHRT_MAX];
-	for (n=0;n<sizeof(femboy_lang)/sizeof(const char*);n++) {
+	I8 femboy_speak[USHRT_MAX];
+	for (n=0;n<sizeof(femboy_lang)/sizeof(const I8*);n++) {
 
 		if (!cmpstrs(cmd,femboy_lang[n],NULL))
 			continue;
@@ -1568,7 +1569,7 @@ out:
 		for (i=0;i<40;i++) {
 			strcpy(femboy_speak+strlen(femboy_speak),
 				femboy_lang[urand(0,(sizeof(femboy_lang)/
-				sizeof(const char*))-1)]);
+				sizeof(const I8*))-1)]);
 			strcpy(femboy_speak+strlen(femboy_speak)," ");
 		}
 
@@ -1588,9 +1589,9 @@ out:
  * Основная функция. Обрабатывает все сообщения которые
  * получает бот, решает что с ними делать.
  */
-inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
+inline static I32 processing(telebot_handler_t handle, telebot_message_t *msg)
 {
-	int n;
+	I32 n;
 
 	if (!msg||!handle)
 		return -1;
@@ -1650,10 +1651,10 @@ inline static int processing(telebot_handler_t handle, telebot_message_t *msg)
  * номер последнего обновления е его знанчение. Последнее
  * обновление суть <lastupdate>.
  */
-inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
+inline static U0 skip_old_msgs(telebot_handler_t handle, I32 *lastupdate)
 {
 	telebot_update_t	*init=NULL;
-	int			cnt=0,n,max,hvm=0;
+	I32			cnt=0,n,max,hvm=0;
 
 	if (telebot_get_updates(_handle,0,10,0,0,0,&init,
 			&cnt)==TELEBOT_ERROR_NONE&&cnt>0) {
@@ -1684,10 +1685,10 @@ inline static void skip_old_msgs(telebot_handler_t handle, int *lastupdate)
 /*
  * sinaibot.c
  */
-int main(int argc, char **argv)
+I32 main(I32 argc, I8 **argv)
 {
 	telebot_user_t		me;
-	int			t,n;
+	I32			t,n;
 
 	signal(SIGINT,leave);
 	if (argc==2)
