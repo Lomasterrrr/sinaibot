@@ -51,10 +51,10 @@ telebot_handler_t	_handle;
 I8			token[BUFSIZ];
 I8			admin_user[BUFSIZ];
 I8			group[BUFSIZ];
-I64		group_id;
+I64			group_id;
 telebot_update_t	*updates;
 I32			num_updates;
-I64		c_id;
+I64			c_id;
 
 /*
  * ГОЛОСОВАНИЯ
