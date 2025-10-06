@@ -1533,7 +1533,7 @@ out:
 	}
 
 	else if (!strcmp(cmd,"autism")) {
-		char	out[65535];
+		I8	out[65535];
 		U32	chance;
 
 		chance=urand(1,100);
