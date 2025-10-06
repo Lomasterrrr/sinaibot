@@ -8,7 +8,7 @@ CFLAGS.jsonc!=pkg-config --cflags json-c
 CFLAGS+=${CFLAGS.jsonc}
 CFLAGS.libcurl!=pkg-config --cflags libcurl
 CFLAGS+=${CFLAGS.libcurl}
-CFLAGS+=-Iinclude
+CFLAGS+=-Iinclude -fPIC
 CFLAGS+=-Werror -Wall -Wno-unused-function
 
 LDLIBS.jsonc!=pkg-config --libs json-c

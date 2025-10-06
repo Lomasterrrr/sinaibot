@@ -1,6 +1,7 @@
 # by nakidai
+
 CFLAGS += -Itelebot/include
-CFLAGS += -Wall -g -O1
+CFLAGS += -Wall -g -O1 -fPIC
 CFLAGS.jsonc!=pkg-config --cflags json-c
 CFLAGS+=${CFLAGS.jsonc}
 

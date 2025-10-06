@@ -1532,6 +1532,44 @@ out:
 		return;
 	}
 
+	else if (!strcmp(cmd,"autism")) {
+		char	out[65535];
+		U32	chance;
+
+		chance=urand(1,100);
+		if (chance<=10) {
+			snprintf(out,sizeof(out),"*У %s — слабый аутизм!*\n"
+					"Наличия аутизма суть: %u%%",
+					get_name_from_msg(msg),chance);
+		}
+		else if (chance<=30) {
+			snprintf(out,sizeof(out),"*У %s — ⚡️ средний ⚡️ аутизм!*\n"
+					"Наличия аутизма суть: %u%%",
+					get_name_from_msg(msg),chance);
+		}
+		else if (chance<=50) {
+			snprintf(out,sizeof(out),"*У %s — 👹 СИЛЬНЫЙ 👹 аутизм!*\n"
+					"Наличия аутизма суть: %u%%",
+					get_name_from_msg(msg),chance);
+		}
+		else if (chance<=80) {
+			snprintf(out,sizeof(out),"*У %s — ✨ M A G N U S ✨ аутизм!*\n"
+					"Наличия аутизма суть: %u%%",
+					get_name_from_msg(msg),chance);
+		}
+		else {
+			snprintf(out,sizeof(out),"*У %s — 👑 M A X I M U S V E R U S 👑 аутизм!*\n"
+					"Наличия аутизма суть: %u%%",
+					get_name_from_msg(msg),chance);
+		}
+
+		master_send_message(handle,msg->chat->id,out,false,
+			false,msg->message_id,NULL);
+
+		return;
+
+	}
+
 
 	/* тайный язык фембоев
 	 *
