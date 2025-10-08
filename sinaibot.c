@@ -4,22 +4,23 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include <stdio.h>
@@ -84,14 +85,17 @@ typedef struct __vote_t {
 	cvector(I8 *) users_no;	/* против */
 } vote_t;
 cvector(vote_t)		vote_vec=NULL;		/* голосования */
-inline static I32 cmpstr(const U0 *a, const U0 *b) { return strcmp((const I8 *)a, (const I8 *)b); }
+inline static I32 cmpstr(const U0 *a, const U0 *b) {return strcmp
+		((const I8 *)a, (const I8 *)b); }
 inline static U0 stop_all_vote(telebot_handler_t handle, I64 chat_id);
 inline static U0 free_string(U0 *str) { if (str) free(*(I8 **)str); }
 inline static I32 vote_add(const I8 *msg, const I8 *starter, const I8 *timel,
 	const I8 *type, const I8 *flag, vote_t *tmp);
 inline static U0 vote_del(u_long id, telebot_handler_t handle, I64 chat_id);
-inline static U0 vote_startmsg(vote_t *v, telebot_handler_t handle, I64 chat_id);
-inline static U0 vote_endmsg(vote_t *v, telebot_handler_t handle, I64 chat_id);
+inline static U0 vote_startmsg(vote_t *v, telebot_handler_t handle,
+			I64 chat_id);
+inline static U0 vote_endmsg(vote_t *v, telebot_handler_t handle,
+			I64 chat_id);
 
 /*
  * СТАТИСТИКА
@@ -342,7 +346,8 @@ telebot_error_e master_send_message(telebot_handler_t handle, I64 chat_id,
 			disable_web_page_preview,disable_notification,
 			reply_to_message_id,reply_markup);
 		if (ret==TELEBOT_ERROR_NONE) {
-			verbose("success send message bot \"%s\" ret=%d\n",message,ret);
+			verbose("success send message bot \"%s\" ret=%d\n",
+					message,ret);
 			return TELEBOT_ERROR_NONE;
 		}
 	}
@@ -768,40 +773,65 @@ inline static U0 dep_state(I8 *out, USZ outsiz, U8 win, U8 jackpot)
 	const I8 *save;
 	if (jackpot) {
 		save="7️⃣", /* заветная семёрка */
-		snprintf(out,outsiz,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
-			save,save,save,save,save,save,save,save,save,save,save,save);
+		snprintf(out,outsiz,
+				"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
+				save,save,save,save,save,save,save,save,save,
+				save,save,save);
 		return;
 		
 	}
 	switch (win) {
 		case 0:
-			snprintf(out,outsiz,"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)]
+			snprintf(out,outsiz,
+				"    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+						sizeof(const I8*))-1)]
 			);
 			break;
 		case 1:
-			save=dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)];
-			snprintf(out,outsiz,"     %s%s%s%s\n— %s%s%s%s —\n     %s%s%s%s\n",
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				save,save,save,save,
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)],
-				dep_notes[urand(0,(sizeof(dep_notes)/sizeof(const I8*))-1)]
+			save=dep_notes[urand(0,(sizeof(dep_notes)/
+					sizeof(const I8*))-1)];
+			snprintf(out,outsiz,
+				"     %s%s%s%s\n— %s%s%s%s —\n     %s%s%s%s\n",
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					save,save,save,save,
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)],
+					dep_notes[urand(0,(sizeof(dep_notes)/
+							sizeof(const I8*))-1)]
 			);
 			break;
 	}
@@ -815,7 +845,8 @@ inline static U0 dep_state(I8 *out, USZ outsiz, U8 win, U8 jackpot)
  * если нашло, выводит свойственное предупреждение и возвращает
  * 0, если не нашло, то возвращает -1.
  */
-inline static I32 systemd_virus(telebot_handler_t handle, telebot_message_t *msg)
+inline static I32 systemd_virus(telebot_handler_t handle,
+		telebot_message_t *msg)
 {
 	const I8	*sp;
 	I32		n;
@@ -836,23 +867,23 @@ inline static I32 systemd_virus(telebot_handler_t handle, telebot_message_t *msg
 
 	if (sp) {
 		master_send_message(handle,msg->chat->id,
-			"ВОТ ЭТО ДА! НОВЫЙ ПРОЕКТ RED HAT SYSTEMD — ЭТО\n"
-			"ВИРУСНЫЙ ЭКСПЛОИТ GCC!!! 🚨🔥 КИБЕРОРУЖИЕ RED HAT\n"
-			"УГРОЗА НАНОРОБОТ ВСТРОЕН В GCC МОДУЛЬ ДЛЯ RED HAT\n"
-			"LINUX!!! 💻☢️ КВАНТОВО-ФИЗИКО-МАТЕМАТИЧЕСКИ\n"
-			"УРОВЕНЬ SYSTEMD!!! 🌌🔮 СССР НЛО RED HAT MICROSOFT\n"
-			"ИНОПЛАНЕТЯНЕ ЗОНА 51 GCC БЕНДЕР LINUX АНТИМАТЕРИЯ\n"
-			"ЦРУ СПЕЦСЛУЖБЫ!!! 🛸👽 СЛЕЖКА ЗА ЛЮДЬМИ ЧЕРЕЗ OPEN\n"
-			"SOURCE!!! 🕵️‍♂️💀 ЭТО ПРОЕКТ ЭЛЕМЕНТАРНЫХ МАСШТАБОВ\n"
-			"США РАЗВОДКА SYSTEMD!!! 🇺🇸⚠️ RED HAT ЗАХВАТ ЗЕМЛИ GCC\n"
-			"СУПЕРСЕКРЕТНАЯ РАЗРАБОТКА!!! 🌍☠️ SYSTEMD ЕВРЕЙСКАЯ\n"
-			"ЦИВИЛИЗАЦИЯ COMMODORE 64!!! ✡️🖥\n"
+		"ВОТ ЭТО ДА! НОВЫЙ ПРОЕКТ RED HAT SYSTEMD — ЭТО\n"
+		"ВИРУСНЫЙ ЭКСПЛОИТ GCC!!! 🚨🔥 КИБЕРОРУЖИЕ RED HAT\n"
+		"УГРОЗА НАНОРОБОТ ВСТРОЕН В GCC МОДУЛЬ ДЛЯ RED HAT\n"
+		"LINUX!!! 💻☢️ КВАНТОВО-ФИЗИКО-МАТЕМАТИЧЕСКИ\n"
+		"УРОВЕНЬ SYSTEMD!!! 🌌🔮 СССР НЛО RED HAT MICROSOFT\n"
+		"ИНОПЛАНЕТЯНЕ ЗОНА 51 GCC БЕНДЕР LINUX АНТИМАТЕРИЯ\n"
+		"ЦРУ СПЕЦСЛУЖБЫ!!! 🛸👽 СЛЕЖКА ЗА ЛЮДЬМИ ЧЕРЕЗ OPEN\n"
+		"SOURCE!!! 🕵️‍♂️💀 ЭТО ПРОЕКТ ЭЛЕМЕНТАРНЫХ МАСШТАБОВ\n"
+		"США РАЗВОДКА SYSTEMD!!! 🇺🇸⚠️ RED HAT ЗАХВАТ ЗЕМЛИ GCC\n"
+		"СУПЕРСЕКРЕТНАЯ РАЗРАБОТКА!!! 🌍☠️ SYSTEMD ЕВРЕЙСКАЯ\n"
+		"ЦИВИЛИЗАЦИЯ COMMODORE 64!!! ✡️🖥\n"
 
-			"\nСЛАВА GCC! 🙏❤️ СЛАВА LINUX! 🙏❤️ АНГЕЛ-ХРАНИТЕЛЬ\n"
-			"OPEN SOURCE КАЖДОМУ ИЗ НАС! 🙏❤️ БОЖЕ, ЗАЩИТИ НАС ОТ\n"
-			"RED HAT SYSTEMD! 🙏🔥 СПАСИБО ТЕБЕ, КОМАНДА 404! 🙏🏼❤️ \n"
-			"ХРАНИ НАС, GNU! 🙏❤️\n"
-			,false,false,msg->message_id,NULL
+		"\nСЛАВА GCC! 🙏❤️ СЛАВА LINUX! 🙏❤️ АНГЕЛ-ХРАНИТЕЛЬ\n"
+		"OPEN SOURCE КАЖДОМУ ИЗ НАС! 🙏❤️ БОЖЕ, ЗАЩИТИ НАС ОТ\n"
+		"RED HAT SYSTEMD! 🙏🔥 СПАСИБО ТЕБЕ, КОМАНДА 404! 🙏🏼❤️ \n"
+		"ХРАНИ НАС, GNU! 🙏❤️\n"
+		,false,false,msg->message_id,NULL
 		);
 		
 		return 0;
@@ -953,15 +984,20 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 
 		if (!strcmp(cmd,it->cmd_ae)||!strcmp(cmd,it->cmd_no)) {
 			if (!msg->from->first_name) {
-				botmsg(handle,msg->chat->id,"Ваше имя не позволяет вам голосовать!");
+				botmsg(handle,msg->chat->id,"Ваше имя не"
+						" позволяет вам голосовать!");
 				return;
 			}
-			if ((cvectorfind((U0 **)it->users_ae,msg->from->first_name,cmpstr))!=-1) {
-				botmsg(handle,msg->chat->id,"Вы уже голосовали! (за)");
+			if ((cvectorfind((U0 **)it->users_ae,
+					msg->from->first_name,cmpstr))!=-1) {
+				botmsg(handle,msg->chat->id,
+						"Вы уже голосовали! (за)");
 				return;
 			}
-			if ((cvectorfind((U0 **)it->users_no,msg->from->first_name,cmpstr))!=-1) {
-				botmsg(handle,msg->chat->id,"Вы уже голосовали! (против)");
+			if ((cvectorfind((U0 **)it->users_no,
+					msg->from->first_name,cmpstr))!=-1) {
+				botmsg(handle,msg->chat->id,
+						"Вы уже голосовали! (против)");
 				return;
 			}
 
@@ -971,15 +1007,22 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 			if (it->senators_flag=='1') {
 				if (msg->from->username)  {
 					if (!is_senator(msg->from->username)) {
-						botmsg(handle,msg->chat->id,"*Только почетные участники могут"
-							" голосовать в этом голосовании!* А не фембой %s!",
+						botmsg(handle,
+							msg->chat->id,
+							"*Только почетные"
+							" участники могут"
+							" голосовать в этом"
+							" голосовании!* А не"
+							" фембой %s!",
 							get_name_from_msg(msg));
 						return;
 					}
 				}
 				else {
-					botmsg(handle,msg->chat->id,"*Из-за отсутствия у вас @username"
-						" нельзя проверить почетный ли вы участник!*");
+					botmsg(handle,msg->chat->id,"*Из-за"
+						" отсутствия у вас @username"
+						" нельзя проверить почетный ли"
+						" вы участник!*");
 					return;
 				}
 			}
@@ -994,18 +1037,24 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		}
 
 		if (!strcmp(cmd,it->cmd_ae)) {
-			cvector_push_back(it->users_ae,strdup(msg->from->first_name));
+			cvector_push_back(it->users_ae,
+					strdup(msg->from->first_name));
 			++it->AE;
-			botmsg(handle,msg->chat->id,"*ЗАСЧИТАНО — ЗА!*\n*Статистика (за/против)*:"
-				" %ld/%ld;\n*Голос*: %s;\n*ID голосования*: `%ld`",
+			botmsg(handle,msg->chat->id,
+				"*ЗАСЧИТАНО — ЗА!*\n*Статистика (за/против)*:"
+				" %ld/%ld;\n*Голос*: %s;\n*"
+				"ID голосования*: `%ld`",
 				it->AE,it->NO,msg->from->first_name,it->id);
 			return;
 		}
 		if (!strcmp(cmd,it->cmd_no)) {
-			cvector_push_back(it->users_no,strdup(msg->from->first_name));
+			cvector_push_back(it->users_no,
+					strdup(msg->from->first_name));
 			++it->NO;
-			botmsg(handle,msg->chat->id,"*ЗАСЧИТАНО — ПРОТИВ!*\n*Статистика (за/против)*:"
-				" %ld/%ld;\n*Голос*: %s;\n*ID голосования*: `%ld`",
+			botmsg(handle,msg->chat->id,"*ЗАСЧИТАНО — ПРОТИВ!*"
+				"\n*Статистика (за/против)*:"
+				" %ld/%ld;\n*Голос*: %s;\n*"
+				"ID голосования*: `%ld`",
 				it->AE,it->NO,msg->from->first_name,it->id);
 			return;
 		}
@@ -1016,7 +1065,8 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 					return;
 				}
 			}
-			botmsg(handle,msg->chat->id,"*Только администратор может"
+			botmsg(handle,msg->chat->id,
+				"*Только администратор может"
 				" остановить голосование!*\nА не фембой %s!",
 				get_name_from_msg(msg));
 			return;
@@ -1063,44 +1113,56 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 			}
 		}
 		if (n<4) {
-			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 4!\n",n);
 			botmsg(handle,msg->chat->id,
-				"*Используйте*:\n  /vote ___<сообщение> <длительность> <тип> <флаг>___\n\n"
-				"*Аргументы*:\n  ___<сообщение>___: какая то информация о голосовании;\n"
-				"  ___<длительность>___:  длительность голосования в секундах;\n"
+				"Слишком мало аргументов: %d вместо 4!\n",n);
+			botmsg(handle,msg->chat->id,
+				"*Используйте*:\n  /vote ___<сообщение>"
+				" <длительность> <тип> <флаг>___\n\n"
+				"*Аргументы*:\n  ___<сообщение>___: какая"
+				" то информация о голосовании;\n"
+				"  ___<длительность>___:  длительность"
+				" голосования в секундах;\n"
 				"  ___<тип>___: есть два типа, это A или B;\n"
-				"  ___<флаг>___: если 1, то голосовать могут только /senlist.\n"
-				"\n*Например:*\n  /vote ___Избираем меня все вместе! 1000 A 0___"
+				"  ___<флаг>___: если 1, то голосовать"
+				" могут только /senlist.\n"
+				"\n*Например:*\n  /vote ___Избираем меня"
+				" все вместе! 1000 A 0___"
 			);
 			return;
 		}
 
 		if (strlen(v_msg)>800) {
-			botmsg(handle,msg->chat->id,"Слишком много символов (макс 800)!");
+			botmsg(handle,msg->chat->id,
+					"Слишком много символов (макс 800)!");
 			return;
 		}
 
 		if (strlen(v_flag)>1||(v_flag[0]!='0'&&v_flag[0]!='1')) {
 			botmsg(handle,msg->chat->id,
-				"Неверный ___<флаг>___ \"%s\" — доступны только 0 или 1!\n",v_flag);
+				"Неверный ___<флаг>___ \"%s\" — "
+				"доступны только 0 или 1!\n",v_flag);
 			return;
 		}
 		if (strlen(v_type)>1||(v_type[0]!='A'&&v_type[0]!='B')) {
 			botmsg(handle,msg->chat->id,
-				"Неверный ___<тип>___ \"%s\" — доступны только A или B!\n",v_type);
+				"Неверный ___<тип>___ \"%s\" — доступны"
+				" только A или B!\n",v_type);
 			return;
 		}
 		if (!is_digit_string(v_time)) {
 			botmsg(handle,msg->chat->id,
-				"Неверная ___<длительность>___ — \"%s\"!\nПопробуйте"
+				"Неверная ___<длительность>___ — \"%s\"!"
+				"\nПопробуйте"
 				" указать, — так называемые *цифры*.\n",v_time);
 			return;
 		}
 
 		/* добавляем голосование */
-		if ((vote_add(v_msg,get_name_from_msg(msg),v_time,v_type,v_flag,&tmp))==-1) {
-			botmsg(handle,msg->chat->id,"Лимит голосований исчерпан! (%d/%d)",
-			VOTE_LIMIT,VOTE_LIMIT);
+		if ((vote_add(v_msg,get_name_from_msg(msg),v_time,v_type,
+				v_flag,&tmp))==-1) {
+			botmsg(handle,msg->chat->id,
+					"Лимит голосований исчерпан! (%d/%d)",
+					VOTE_LIMIT,VOTE_LIMIT);
 			return;
 		}
 
@@ -1109,7 +1171,8 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 	}
 
 
-	/* fucking щааайт!!! is support с помощью так называемого, - master-code...
+	/* fucking щааайт!!!
+	 * is support с помощью так называемого, - master-code...
 	 * Фанаты такие: 'ооо ктотонокто, как ты это делаешь!'
 	 * Я такой (ну типо): 'мой код суть пободен мастеру'
 	 * Фанаты которые не могут успокоится: 'как это охуенно, дааа!' */
@@ -1248,7 +1311,8 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		I32	chance;
 
 		if (!(p=strtok(NULL," "))) {
-			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 2!\n",1);
+			botmsg(handle,msg->chat->id,
+				"Слишком мало аргументов: %d вместо 2!\n",1);
 			botmsg(handle,msg->chat->id,
 				"*Используйте*:\n  /dep ___<прайс>___\n"
 				"\n*Например:*\n  /dep ___1000___ заношу прайс"
@@ -1258,12 +1322,14 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		
 		str_to_USZ(p,&arg,1,SIZE_MAX);
 		if (arg<1000) {
-			botmsg(handle,msg->chat->id,"Неверный ___<прайс>___ — %ld!"
-				"\nОн слишком нищий!\n",arg);
+			botmsg(handle,msg->chat->id,
+					"Неверный ___<прайс>___ — %ld!"
+					"\nОн слишком нищий!\n",arg);
 			return;
 		} else if (arg>10000000) {
-			botmsg(handle,msg->chat->id,"Неверный ___<прайс>___ — %ld!"
-				"\nОн слишком большой!\n",arg);
+			botmsg(handle,msg->chat->id,
+					"Неверный ___<прайс>___ — %ld!"
+					"\nОн слишком большой!\n",arg);
 			return;
 		}
 			
@@ -1335,8 +1401,8 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		while (fgets(line,sizeof(line),fp)) {
 			n++;
 			if (n==i) {
-				master_send_message(handle,msg->chat->id,line,false,
-					false,msg->message_id,NULL);
+				master_send_message(handle,msg->chat->id,
+					line,false,false,msg->message_id,NULL);
 				break;
 			}
 		}
@@ -1365,8 +1431,8 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		while (fgets(line,sizeof(line),fp)) {
 			n++;
 			if (n==i) {
-				master_send_message(handle,msg->chat->id,line,false,
-					false,msg->message_id,NULL);
+				master_send_message(handle,msg->chat->id,line,
+					false,false,msg->message_id,NULL);
 				break;
 			}
 		}
@@ -1386,14 +1452,17 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 
 		s=e=0;
 		if (!(p=strtok(NULL," "))) {
-			botmsg(handle,msg->chat->id,"Слишком мало аргументов: %d вместо 2!\n",1);
+			botmsg(handle,msg->chat->id,
+				"Слишком мало аргументов: %d вместо 2!\n",1);
 			botmsg(handle,msg->chat->id,
 				"*Используйте*:\n  /amenl ___<позиция>___\n\n"
 				"*Формат позиции*:\n"
 				"  (a) ___<книга>.<глава>:<строчка>___\n"
-				"  (b) ___<книга>.<глава>:<от>___*-*___<до>___\n"
+				"  (b) ___<книга>.<глава>:"
+				"<от>___*-*___<до>___\n"
 
-				"\n*Книги суть*:\n___Мат. Мар. Лук. Иоан. Деян. Иак. 1Пет.\n2Пет. "
+				"\n*Книги суть*:\n___Мат. Мар. Лук. Иоан."
+				" Деян. Иак. 1Пет.\n2Пет. "
 				"1Иоан. 2Иоан. 3Иоан. Иуда. Рим.\n1Кор. 2Кор. "
 				"Гал. Еф. Фил. Кол. 1Фес.\n2Фес. 1Тим. 2Тим. "
 				"Тит. Филим. Евр. Отк.___\n"
@@ -1431,11 +1500,12 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		part3[n]='\0';
 
 		if (!cmpstrs(part1,"Мат.","Мар.","Лук.","Иоан.","Деян.","Иак.",
-				"1Пет.","2Пет.","1Иоан.","2Иоан.","3Иоан.","Иуда",
-				"Рим.","1Кор.","2Кор.","Гал.","Еф.","Фил.","Кол.",
-				"1Фес.","2Фес.","1Тим.","2Тим.","Тит.","Филим.",
-				"Евр.","Отк.",NULL)) {
-			botmsg(handle,msg->chat->id,"Книга ___<%s>___: не найдена!",part1);
+				"1Пет.","2Пет.","1Иоан.","2Иоан.","3Иоан.",
+				"Иуда","Рим.","1Кор.","2Кор.","Гал.","Еф.",
+				"Фил.","Кол.","1Фес.","2Фес.","1Тим.","2Тим.",
+				"Тит.","Филим.","Евр.","Отк.",NULL)) {
+			botmsg(handle,msg->chat->id,
+					"Книга ___<%s>___: не найдена!",part1);
 			return;
 		}
 		if (!is_digit_string(part2)) {
@@ -1497,18 +1567,25 @@ inline static U0 command(telebot_handler_t handle, telebot_message_t *msg)
 		n=0;
 		while (fgets(line,sizeof(line),fp)) {
 			if (strstr(line,pbuf)) {
-				master_send_message(handle,msg->chat->id,line,false,
-					false,msg->message_id,NULL);
+				master_send_message(handle,msg->chat->id,line,
+					false,false,msg->message_id,NULL);
 
 				if (e>0) {	/* this range */
 					++s;
 					for (;s<=e;s++) {
 						bzero(pbuf,sizeof(pbuf));
-						snprintf(pbuf,sizeof(pbuf),"%s%s:%ld",part1,part2,s);
-						while (fgets(line,sizeof(line),fp)) {
+						snprintf(pbuf,sizeof(pbuf),
+								"%s%s:%ld",
+								part1,part2,s);
+						while (fgets(line,sizeof(line),
+								fp)) {
 							if (strstr(line,pbuf)) {
-								master_send_message(handle,msg->chat->id,line,false,
-									false,msg->message_id,NULL);
+						master_send_message(handle,
+								msg->chat->id,
+								line,false,
+								false,
+								msg->message_id,
+								NULL);
 								n=1;
 								break;
 							}
@@ -1533,34 +1610,71 @@ out:
 	}
 
 	else if (!strcmp(cmd,"autism")) {
-		I8	out[65535];
-		U32	chance;
+		I8		out[65535];
+		const I8	*deus[2];
+		U32		chance;
+		U32		chance1;
 
 		chance=urand(1,100);
 		if (chance<=10) {
-			snprintf(out,sizeof(out),"*У %s — слабый аутизм!*\n"
-					"Наличия аутизма суть: %u%%",
+			snprintf(out,sizeof(out),
+					"*У %s — слабый аутизм!*\n"
+					"Наличие аутизма суть: %u%%",
 					get_name_from_msg(msg),chance);
 		}
 		else if (chance<=30) {
-			snprintf(out,sizeof(out),"*У %s — ⚡️ средний ⚡️ аутизм!*\n"
-					"Наличия аутизма суть: %u%%",
+			snprintf(out,sizeof(out),
+					"*У %s — ⚡️ средний ⚡️ аутизм!*\n"
+					"Наличие аутизма суть: %u%%",
 					get_name_from_msg(msg),chance);
 		}
 		else if (chance<=50) {
-			snprintf(out,sizeof(out),"*У %s — 👹 СИЛЬНЫЙ 👹 аутизм!*\n"
-					"Наличия аутизма суть: %u%%",
+			snprintf(out,sizeof(out),
+					"*У %s — 👹 СИЛЬНЫЙ 👹 аутизм!*\n"
+					"Наличие аутизма суть: %u%%",
 					get_name_from_msg(msg),chance);
 		}
 		else if (chance<=80) {
-			snprintf(out,sizeof(out),"*У %s — ✨ M A G N U S ✨ аутизм!*\n"
-					"Наличия аутизма суть: %u%%",
+			snprintf(out,sizeof(out),
+					"*У %s — ✨ M A G N U S ✨ аутизм!*\n"
+					"Наличие аутизма суть: %u%%",
+					get_name_from_msg(msg),chance);
+		}
+		else if (chance<=99) {
+			snprintf(out,sizeof(out),
+					"*У %s — 👑 M A X I M U S V E"
+					" R U S 👑 аутизм!*\n"
+					"Наличие аутизма суть: %u%%",
 					get_name_from_msg(msg),chance);
 		}
 		else {
-			snprintf(out,sizeof(out),"*У %s — 👑 M A X I M U S V E R U S 👑 аутизм!*\n"
-					"Наличия аутизма суть: %u%%",
-					get_name_from_msg(msg),chance);
+			chance1=urand(1,4);
+			switch (chance1) {
+				case 1:
+					deus[0]="🌙";
+					deus[1]="🌕";
+					break;
+				case 2:
+					deus[0]="🌈";
+					deus[1]="🌈";
+					break;
+				case 3:
+					deus[0]="🌪";
+					deus[1]="🌊";
+					break;
+				case 4:
+					deus[0]="🪐";
+					deus[1]="💫";
+					break;
+			}
+			snprintf(out,sizeof(out),
+					"*У %s —\n\n    *"
+					"__*%s D E U S ⚜️ P R I M U S %s*__\n\n"
+					"*аутизм!*\n"
+					"Наличие аутизма суть: %u%%",
+					get_name_from_msg(msg),
+					deus[0],deus[1],
+					chance);
 		}
 
 		master_send_message(handle,msg->chat->id,out,false,
@@ -1582,18 +1696,21 @@ out:
 		"\\:C", "🥺🥺", "🥺🥺🥺", "hewwo~ how awe u~", "senpai~",
 		"not me doing this 👉👈", "*nuzzles u*", "*pounces on u*",
 		"*blushes*", "*giggles~*", "*tail wags*", "*hides face*",
-		"*squeaks*", "*whimpers softly*", "am smol qwq", "pls no bully :<",
-		"i wuv you~", "rawr x3", "so cutesy~", "pwease uwu", "chu~", "nya~",
-		"i'm just a smol bean~", "*licks ur cheek*", "*clings to u*",
-		"*cuddwes*", "*snuggwes tight~*", "*looks up at u wif big eyes*",
+		"*squeaks*", "*whimpers softly*", "am smol qwq",
+		"pls no bully :<","i wuv you~", "rawr x3", "so cutesy~",
+		"pwease uwu", "chu~", "nya~", "i'm just a smol bean~",
+		"*licks ur cheek*", "*clings to u*","*cuddwes*",
+		"*snuggwes tight~*", "*looks up at u wif big eyes*",
 		"*does a happi dance*", "*owo what's dis?*", "*floofs hair*",
 		 "*twirls around*", "*tilts head cutely*", "*paw pats*",
 		"*wiggles fingers*", "s-senpai noticed me! 🥺", "*sparkles*",
-		"uwu what's this? :3", "*huggles*", "*boops ur nose*", "*blushes deeply*",
-		"teehee~", "*sniffs*", "*peekaboo!*", "mwah~ 💋", "soft smooches~",
-		"*sleepy yawn*", "teehee owo", "*licks lips*", "rawr xD", "pls be gentle~",
-		"*floats like a cloud*", "*dreamy eyes*", "glomp~", "paws up! *meow*",
-		"uwu >w<", "*snuggles into your arms*", "💕", "🥺💖", "💖","femboy"
+		"uwu what's this? :3", "*huggles*", "*boops ur nose*",
+		"*blushes deeply*", "teehee~", "*sniffs*", "*peekaboo!*",
+		"mwah~ 💋", "soft smooches~", "*sleepy yawn*", "teehee owo",
+		"*licks lips*", "rawr xD", "pls be gentle~",
+		"*floats like a cloud*", "*dreamy eyes*", "glomp~",
+		"paws up! *meow*","uwu >w<", "*snuggles into your arms*",
+		"💕", "🥺💖", "💖","femboy"
 	};
 	I8 femboy_speak[USHRT_MAX];
 	for (n=0;n<sizeof(femboy_lang)/sizeof(const I8*);n++) {
@@ -1601,8 +1718,8 @@ out:
 		if (!cmpstrs(cmd,femboy_lang[n],NULL))
 			continue;
 
-		snprintf(femboy_speak,sizeof(femboy_speak),"hewwo~ %s! 👉👈\n\n",
-			get_name_from_msg(msg));
+		snprintf(femboy_speak,sizeof(femboy_speak),
+				"hewwo~ %s! 👉👈\n\n",get_name_from_msg(msg));
 
 		for (i=0;i<40;i++) {
 			strcpy(femboy_speak+strlen(femboy_speak),
@@ -1655,9 +1772,11 @@ inline static I32 processing(telebot_handler_t handle, telebot_message_t *msg)
 	/* зашли новые участники? */
 	if (msg->new_chat_members&&msg->count_new_chat_members>0) {
 		for (n=0;n<msg->count_new_chat_members;n++)
-			if ((telebot_send_animation(handle,c_id,"data/hello.mp4",
+			if ((telebot_send_animation(handle,c_id,
+					"data/hello.mp4",
 					true,0,0,0,NULL,NULL,"Markdown",false,
-					msg->message_id,NULL))!=TELEBOT_ERROR_NONE)
+					msg->message_id,NULL))
+					!=TELEBOT_ERROR_NONE)
 				verbose("failed send hello.mp4!\n");
 		return 0;
 	}
