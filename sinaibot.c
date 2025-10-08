@@ -1668,9 +1668,9 @@ out:
 					break;
 			}
 			snprintf(out,sizeof(out),
-					"*У %s —\n\n    *"
-					"__*%s D E U S ⚜️ P R I M U S %s*__\n\n"
-					"*аутизм!*\n"
+					"*У %s —\n\n    "
+					"%s D E U S ⚜️ P R I M U S %s\n\n"
+					"аутизм!*\n"
 					"Наличие аутизма суть: %u%%",
 					get_name_from_msg(msg),
 					deus[0],deus[1],
