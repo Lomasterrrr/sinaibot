@@ -1611,7 +1611,7 @@ out:
 
 	else if (!strcmp(cmd,"autism")) {
 		I8		out[65535];
-		const I8	*deus[2];
+		const I8	*deus[2]={0};
 		U32		chance;
 		U32		chance1;
 
