@@ -1615,6 +1615,28 @@ out:
 		U32		chance;
 		U32		chance1;
 
+		if (urand(1,1000000)==1) {
+			snprintf(out,sizeof(out),
+					"♈️-♉️-♊️-♋️-♌️-♍️-♎️-♏️-♐️-♑️-♒️-♓️"
+					"\n\n"
+					" *У %s —"
+					"\n\n"
+					"   ☀️ Σ O L I S ⚜️ D O M I N U S 👑\n"
+					"    💫 I M P E R A T O R 🔱 A E T E R"
+					" N U S 🪐\n"
+					"   🌈  Λ U X ⚜️ E T E R N A ✨\n"
+					"    🌧  S A C R U M 🔱 O R D O 🔥\n"
+					"\n"
+					"  НЕТ АУТИЗМА!*\n"
+					"\n"
+					"♈️-♉️-♊️-♋️-♌️-♍️-♎️-♏️-♐️-♑️-♒️-♓️"
+					,get_name_from_msg(msg));
+
+			master_send_message(handle,msg->chat->id,out,false,
+				false,msg->message_id,NULL);
+			return;
+		}
+
 		chance=urand(1,100);
 		if (chance<=10) {
 			snprintf(out,sizeof(out),
