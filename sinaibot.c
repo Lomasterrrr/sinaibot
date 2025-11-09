@@ -1745,11 +1745,17 @@ out:
 					nxt=urand(1,20);
 					extra=urand(0,1);
 
+					if (n)
+						len+=nxt;
+					else
+						len-=nxt;
+
 					bzero(str,sizeof(str));
 					snprintf(str,sizeof(str),
 						"*У %s его пенис\n"
 						"  — %s на %ld см* (%s)"
 						"%s"
+						"\n\n*Новая длинна*: %lld см"
 						,get_name_from_msg(msg)
 						,((n)?"👹 вырос":"💀 сжался")
 						,nxt
@@ -1759,6 +1765,7 @@ out:
 							"M A G N U S"
 						,(extra)?"\n  — ⚜️ ___Доступна"
 						" extra-попытка!___ `/penis` ⚜️":""
+						,len
 					);
 
 					master_send_message(
@@ -1766,10 +1773,6 @@ out:
 						false,false,msg->message_id,
 						NULL);
 
-					if (n)
-						len+=nxt;
-					else
-						len-=nxt;
 
 					/* extra попытка? */
 					if (!extra) {
