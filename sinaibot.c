@@ -1838,7 +1838,7 @@ out:
 		I8		line[65535];
 		I8		str[65535];
 		I8		tmp[65535];
-		I8		name[65535];
+		I8		name[4028];
 		I64		len;	/* (penis) */
 		I32		i,j;
 
