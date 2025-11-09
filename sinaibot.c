@@ -1784,7 +1784,7 @@ out:
 						id,len,nxt,
 						get_name_from_msg(msg));
 				}
-				++fnd;
+				fnd=1;
 			}
 			else
 				fputs(line,tmp);
@@ -1833,7 +1833,7 @@ out:
 		FILE		*fp;
 		I8		line[65535];
 		I8		str[65535];
-		I8		tmp[2048];
+		I8		tmp[65535];
 		I8		name[2048];
 		I64		len;	/* (penis) */
 		I32		i,j;
@@ -1867,7 +1867,7 @@ out:
 						sizeof(stats[i].name),
 						"%s",name);
 					stats[i].len=len;
-					++stats[i].init;
+					stats[i].init=1;
 					break;
 				}
 			}
@@ -1920,7 +1920,7 @@ out:
 					,id,get_name_from_msg(msg),
 					len,penis,
 					(time(NULL)<nxt)?(nxt-time(NULL)):0);
-				++fnd;
+				fnd=1;
 			}
 		}
 		fclose(fp);
