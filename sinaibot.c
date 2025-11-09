@@ -129,11 +129,6 @@ const I8 *dep_notes[]={
 };
 inline static U0 dep_state(I8 *s, USZ slen, U8 win, U8 jackpot);
 
-/*
- * КОМАНДЫ РОДА PENIS
- */
-// XXX
-
 
 
 /*
@@ -1719,7 +1714,7 @@ out:
 		time_t		nxt;
 		I64		len;	/* (penis) */
 		U32		n;
-		bool		fnd;
+		bool		fnd,extra;
 
 		idm=msg->from->id;
 		if (!(fp=fopen("data/penis","a+")))
@@ -1749,18 +1744,23 @@ out:
 				else {
 					n=urand(0,1);
 					nxt=urand(1,20);
+					extra=urand(0,1);
 
 					bzero(str,sizeof(str));
 					snprintf(str,sizeof(str),
 						"*У %s его пенис\n"
 						"  — %s на %ld см* (%s)"
+						"%s"
 						,get_name_from_msg(msg)
-						,((n)?"вырос":"сжался")
+						,((n)?"👹 вырос":"💀 сжался")
 						,nxt
 						,(nxt<=5)?"чуть-чуть":
 							(nxt<=8)?"немного":
 							(nxt<=15)?"значимо":
-							"много");
+							"M A G N U S"
+						,(extra)?"\n  — ⚜️ ___Доступна"
+						" extra-попытка!___ ⚜️":""
+					);
 
 					master_send_message(
 						handle,msg->chat->id,str,
@@ -1772,14 +1772,19 @@ out:
 					else
 						len-=nxt;
 
-					/* следующая через 10/15/30 мин */
-					n=urand(1,3);
-					switch (n) {
-						case 1: nxt=600; break;
-						case 2: nxt=900; break;
-						case 3: nxt=1800; break;
+					/* extra попытка? */
+					if (!extra) {
+						/* следующая через 5/10/15 мин*/
+						n=urand(1,3);
+						switch (n) {
+							case 1: nxt=300; break;
+							case 2: nxt=600; break;
+							case 3: nxt=900; break;
+						}
+						nxt+=time(NULL);
 					}
-					nxt+=time(NULL);
+					else
+						nxt=0;
 
 					fprintf(tmp,"%lld %lld %ld %s\n",
 						id,len,nxt,
@@ -1791,7 +1796,6 @@ out:
 				fputs(line,tmp);
 		}
 		if (!fnd) {
-			I8 *emoji;
 			I8 *check;
 
 			len=urand(1,20);
@@ -1802,14 +1806,13 @@ out:
 			else
 				check="неплохо";
 			
-			emoji="👹";
 			bzero(str,sizeof(str));
 			snprintf(str,sizeof(str),
-				"%s*%s вступил в игру%s\n\n"
+				"👹 *%s вступил в игру 👹\n\n"
 				"Входная длинна пениса,\n  — %lld см* (%s)\n\n"
 				"___(Уже через 10 секунд вы сможете\n"
 				"впервые его увеличить!)___\n"
-				,emoji,get_name_from_msg(msg),emoji,len,check);
+				,get_name_from_msg(msg),len,check);
 			
 			/* у первой попытки задержка 10 сек */
 			fprintf(tmp,"%lld %lld %ld %s\n",
@@ -1835,18 +1838,19 @@ out:
 		I8		line[65535];
 		I8		str[65535];
 		I8		tmp[65535];
-		I8		name[2048];
+		I8		name[65535];
 		I64		len;	/* (penis) */
 		I32		i,j;
 
 		/* penis table */
 		struct dickstat {
-			char name[2048];
+			I8 name[65535];
 			I64 len;
 			bool init;
-		} stats[10];
+		} stats[30];
 
-		for (i=0;i<10;i++) {
+		bzero(str,sizeof(str));
+		for (i=0;i<30;i++) {
 			stats[i].len=LLONG_MIN; 
 			stats[i].name[0]='\0';
 			stats[i].init=0;
@@ -1855,18 +1859,20 @@ out:
 			return;
 		for (;fgets(line,sizeof(line),fp);) {
 			sscanf(line,"%*lld %lld %*ld %s",&len,name);
-			for (i=0;i<10;i++) {
+			for (i=0;i<30;i++) {
 				if ((len>=0&&stats[i].len<0)||
-					(len>stats[i].len&&
-					!(len>=0&&stats[i].len<0))) {
+						(len>stats[i].len&&
+						!(len>=0&&stats[i].len<0))) {
 
-					for (j=9;j>i;j--)
+					for (j=29;j>i;j--)
 						stats[j]=stats[j-1];
+
 					bzero(stats[i].name,
 						sizeof(stats[i].name));
 					snprintf(stats[i].name,
 						sizeof(stats[i].name),
 						"%s",name);
+
 					stats[i].len=len;
 					stats[i].init=1;
 					break;
@@ -1875,8 +1881,8 @@ out:
 		}
 		fclose(fp);
 
-		bzero(str,sizeof(str));
-		for (i=0;i<10&&stats[i].init;i++) {
+		/* формируем таблицу в str для отправки */
+		for (i=0;i<30&&stats[i].init;i++) {
 			bzero(tmp,sizeof(tmp));
 			snprintf(tmp,sizeof(tmp),
 				"%s ___(%d)___ *%s — %lld см*\n",
@@ -1884,6 +1890,7 @@ out:
 				(i+1),stats[i].name,stats[i].len);
 			strcpy(str+strlen(str),tmp);
 		}
+
 		master_send_message(handle,msg->chat->id,str,
 				false,false,msg->message_id,NULL);
 		return; 
@@ -1907,6 +1914,9 @@ out:
 		for (;fgets(line,sizeof(line),fp);) {
 			sscanf(line,"%lld %lld %ld %s",&id,&len,&nxt,name);
 			if (id==idm&&(!strcmp(name,get_name_from_msg(msg)))) {
+
+				/* формируем точное изоображение пениса
+				 * т. е. - фоторобот члена. */
 				strcpy(penis,"⚪️\n");
 				for (i=1;i<=len;i++)
 					if (i%5==0&&i<=1000)
@@ -1914,6 +1924,7 @@ out:
 				if (len<10)
 					strcpy(penis+strlen(penis),"▫️");
 				strcpy(penis+strlen(penis),"\n⚪️");
+
 				snprintf(str,sizeof(str),
 					"*Идентификатор*: %lld (%s)\n"
 					"*Длинна*: %lld см\n\n"
@@ -1929,7 +1940,8 @@ out:
 
 		if (!fnd)
 			snprintf(str,sizeof(str),
-				"Ваша статистика не найдена!");
+				"Ваша статистика не найдена!\n"
+				"Попробуйте: /penis!");
 
 		master_send_message(handle,msg->chat->id,str,
 				false,false,msg->message_id,NULL);
