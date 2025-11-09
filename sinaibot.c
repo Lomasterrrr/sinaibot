@@ -1994,6 +1994,49 @@ out:
 			get_name_from_msg(msg));
 		return;
 	}
+	else if (!strcmp(cmd,"dickreset")) {
+		if (msg->from->username) {
+			if (!strcmp(msg->from->username,admin_user)) {
+				FILE		*fp;
+				FILE		*tmp;
+				I8		line[65535];
+				I8		name[65535];
+				I64		id;
+				I64		len;
+
+				if (!(fp=fopen("data/penis","a+")))
+					return;
+				if (!(tmp=tmpfile()))
+					return;
+				
+				rewind(fp);
+				for (;fgets(line,sizeof(line),fp);) {
+					sscanf(line,"%lld %lld %*ld %[^\n]",
+						&id,&len,name);
+					fprintf(tmp,"%lld %lld %d %s\n",
+						id,len,0,name);
+				}
+
+				rewind(tmp);
+				freopen("data/penis","w",fp);
+				for (;fgets(line,sizeof(line),tmp);)
+					fputs(line,fp);
+				fclose(fp);
+				fclose(tmp);
+
+				botmsg(handle,msg->chat->id,
+					"*Все задержки пенисов"
+					" были сброшены!*\n"
+					"*Используйте*: `/penis`");
+				return;
+			}
+		}
+		botmsg(handle,msg->chat->id,
+			"*Только администратор может сбросить"
+			" все времена!*\nА не фембой %s!",
+			get_name_from_msg(msg));
+		return;
+	}
 
 
 	/* тайный язык фембоев
