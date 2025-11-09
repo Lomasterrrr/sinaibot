@@ -648,7 +648,7 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *core_h,
-        int user_id, int offset, int limit, telebot_core_response_t *response);
+        long long int user_id, int offset, int limit, telebot_core_response_t *response);
 
 /**
  * @brief Get basic info about a file and prepare it for
@@ -694,7 +694,7 @@ telebot_error_e telebot_core_download_file(telebot_core_handler_t *core_h,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, long until_date,
+        long long int chat_id, long long int user_id, long until_date,
         telebot_core_response_t *response);
 
 /**
@@ -710,7 +710,7 @@ telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, telebot_core_response_t *response);
+        long long int chat_id, long long int user_id, telebot_core_response_t *response);
 
 /**
  * @brief Restrict a user in a supergroup. The bot must be an administrator in
@@ -745,7 +745,7 @@ telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, long until_date, bool can_send_messages,
+        long long int chat_id, long long int user_id, long until_date, bool can_send_messages,
         bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
         bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
         bool can_pin_messages, telebot_core_response_t *response);
@@ -781,7 +781,7 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
+        long long int chat_id, long long int user_id, bool can_change_info, bool can_post_messages,
         bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
         bool can_restrict_members, bool can_pin_messages, bool can_promote_members,
         telebot_core_response_t *response);
@@ -801,7 +801,7 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_set_chat_admin_custom_title(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, const char *custom_title,
+        long long int chat_id, long long int user_id, const char *custom_title,
         telebot_core_response_t *response);
 
 /**
@@ -1008,7 +1008,7 @@ telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core
  * @return on Success, TELEBOT_ERROR_NONE is returned, otherwise a negative error value.
  */
 telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
-        long long int chat_id, int user_id, telebot_core_response_t *response);
+        long long int chat_id, long long int user_id, telebot_core_response_t *response);
 
 /**
  * @brief Set a new group sticker set for a supergroup. The bot must be an administrator

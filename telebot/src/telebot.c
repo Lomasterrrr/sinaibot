@@ -754,7 +754,7 @@ telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int
     return ret;
 }
 
-telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle, int user_id,
+telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle, long long int user_id,
     int offset, int limit, telebot_user_profile_photos_t *photos)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
@@ -873,7 +873,7 @@ finish:
 }
 
 telebot_error_e telebot_kick_chat_member(telebot_handler_t handle, long long int chat_id,
-    int user_id, long until_date)
+    long long int user_id, long until_date)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
@@ -888,7 +888,7 @@ telebot_error_e telebot_kick_chat_member(telebot_handler_t handle, long long int
 }
 
 telebot_error_e telebot_unban_chat_member(telebot_handler_t handle, long long int chat_id,
-     int user_id)
+     long long int user_id)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
@@ -902,7 +902,7 @@ telebot_error_e telebot_unban_chat_member(telebot_handler_t handle, long long in
 }
 
 telebot_error_e telebot_restrict_chat_member(telebot_handler_t handle,
-    long long int chat_id, int user_id, long until_date, bool can_send_messages,
+    long long int chat_id, long long int user_id, long until_date, bool can_send_messages,
     bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
     bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
     bool can_pin_messages)
@@ -922,7 +922,7 @@ telebot_error_e telebot_restrict_chat_member(telebot_handler_t handle,
 }
 
 telebot_error_e telebot_promote_chat_member(telebot_handler_t handle,
-    long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
+    long long int chat_id, long long int user_id, bool can_change_info, bool can_post_messages,
     bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
     bool can_restrict_members, bool can_pin_messages, bool can_promote_members)
 {
@@ -941,7 +941,7 @@ telebot_error_e telebot_promote_chat_member(telebot_handler_t handle,
 }
 
 telebot_error_e telebot_set_chat_admin_custom_title(telebot_handler_t handle,
-    long long int chat_id, int user_id, const char *custom_title)
+    long long int chat_id, long long int user_id, const char *custom_title)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)
@@ -1282,7 +1282,7 @@ finish:
 }
 
 telebot_error_e telebot_get_chat_member(telebot_handler_t handle, long long int chat_id,
-    int user_id, telebot_chat_member_t *member)
+    long long int user_id, telebot_chat_member_t *member)
 {
     telebot_hdata_t *_handle = (telebot_hdata_t *)handle;
     if (_handle == NULL)

@@ -1515,7 +1515,7 @@ telebot_error_e telebot_core_send_chat_action(telebot_core_handler_t *core_h,
 }
 
 telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *core_h,
-    int user_id, int offset, int limit, telebot_core_response_t *response)
+    long long int user_id, int offset, int limit, telebot_core_response_t *response)
 {
     if ((core_h == NULL) || (core_h->token == NULL))
     {
@@ -1533,7 +1533,7 @@ telebot_error_e telebot_core_get_user_profile_photos(telebot_core_handler_t *cor
     telebot_core_mime_t mimes[3]; // number of arguments
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     mimes[index].name = "offset";
@@ -1638,7 +1638,7 @@ finish:
 }
 
 telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, long until_date, telebot_core_response_t *response)
+    long long int chat_id, long long int user_id, long until_date, telebot_core_response_t *response)
 {
     if ((core_h == NULL) || (core_h->token == NULL))
     {
@@ -1661,7 +1661,7 @@ telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
 
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     if (until_date > 0)
@@ -1676,7 +1676,7 @@ telebot_error_e telebot_core_kick_chat_member(telebot_core_handler_t *core_h,
 }
 
 telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, telebot_core_response_t *response)
+    long long int chat_id, long long int user_id, telebot_core_response_t *response)
 {
     if ((core_h == NULL) || (core_h->token == NULL))
     {
@@ -1699,14 +1699,14 @@ telebot_error_e telebot_core_unban_chat_member(telebot_core_handler_t *core_h,
 
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_UNBAN_CHAT_MEMBER, mimes, index, response);
 }
 
 telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, long until_date, bool can_send_messages,
+    long long int chat_id, long long int user_id, long until_date, bool can_send_messages,
     bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
     bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
     bool can_pin_messages, telebot_core_response_t *response)
@@ -1732,7 +1732,7 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
 
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     if (until_date > 0)
@@ -1787,7 +1787,7 @@ telebot_error_e telebot_core_restrict_chat_member(telebot_core_handler_t *core_h
 }
 
 telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
+    long long int chat_id, long long int user_id, bool can_change_info, bool can_post_messages,
     bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
     bool can_restrict_members, bool can_pin_messages, bool can_promote_members,
     telebot_core_response_t *response)
@@ -1813,7 +1813,7 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
 
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     mimes[index].name = "can_change_info";
@@ -1860,7 +1860,7 @@ telebot_error_e telebot_core_promote_chat_member(telebot_core_handler_t *core_h,
 }
 
 telebot_error_e telebot_core_set_chat_admin_custom_title(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, const char *custom_title,
+    long long int chat_id, long long int user_id, const char *custom_title,
     telebot_core_response_t *response)
 {
     if ((core_h == NULL) || (core_h->token == NULL))
@@ -1884,7 +1884,7 @@ telebot_error_e telebot_core_set_chat_admin_custom_title(telebot_core_handler_t 
 
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     mimes[index].name = "custom_title";
@@ -2217,7 +2217,7 @@ telebot_error_e telebot_core_get_chat_members_count(telebot_core_handler_t *core
 }
 
 telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
-    long long int chat_id, int user_id, telebot_core_response_t *response)
+    long long int chat_id, long long int user_id, telebot_core_response_t *response)
 {
     if ((core_h == NULL) || (core_h->token == NULL))
     {
@@ -2240,7 +2240,7 @@ telebot_error_e telebot_core_get_chat_member(telebot_core_handler_t *core_h,
 
     mimes[index].name = "user_id";
     mimes[index].type = TELEBOT_MIME_TYPE_DATA;
-    snprintf(mimes[index].data, sizeof(mimes[index].data), "%d", user_id);
+    snprintf(mimes[index].data, sizeof(mimes[index].data), "%lld", user_id);
     ++index;
 
     return telebot_core_curl_perform(core_h, TELEBOT_METHOD_GET_CHAT_MEMBER, mimes, index, response);

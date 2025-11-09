@@ -219,7 +219,7 @@ telebot_error_e telebot_parser_get_user(struct json_object *obj, telebot_user_t 
         ERR("Object is not json user type, id not found");
         return TELEBOT_ERROR_OPERATION_FAILED;
     }
-    user->id = json_object_get_int(id);
+    user->id = json_object_get_int64(id);
 
     struct json_object *is_bot = NULL;
     if (!json_object_object_get_ex(obj, "is_bot", &is_bot))
@@ -1291,7 +1291,7 @@ telebot_error_e telebot_parser_get_contact(struct json_object *obj, telebot_cont
 
     struct json_object *user_id = NULL;
     if (json_object_object_get_ex(obj, "user_id", &user_id))
-        contact->user_id = json_object_get_int(user_id);
+        contact->user_id = json_object_get_int64(user_id);
 
     struct json_object *vcard = NULL;
     if (json_object_object_get_ex(obj, "vcard", &vcard))

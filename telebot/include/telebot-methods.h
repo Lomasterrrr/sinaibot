@@ -639,7 +639,7 @@ telebot_error_e telebot_send_chat_action(telebot_handler_t handle, long long int
  * error value.
  */
 telebot_error_e telebot_get_user_profile_photos(telebot_handler_t handle,
-        int user_id, int offset, int limit, telebot_user_profile_photos_t *photos);
+        long long int user_id, int offset, int limit, telebot_user_profile_photos_t *photos);
 
 /**
  * @brief This function is used to free memory allocated for user profile
@@ -678,7 +678,7 @@ telebot_error_e telebot_download_file(telebot_handler_t handle, const char *file
  * error value.
  */
 telebot_error_e telebot_kick_chat_member(telebot_handler_t handle, long long int chat_id,
-    int user_id, long until_date);
+    long long int user_id, long until_date);
 
 /**
  * @brief Unban a previously kicked user in a supergroup or channel. The user will
@@ -692,7 +692,7 @@ telebot_error_e telebot_kick_chat_member(telebot_handler_t handle, long long int
  * error value.
  */
 telebot_error_e telebot_unban_chat_member(telebot_handler_t handle, long long int chat_id,
-     int user_id);
+     long long int user_id);
 
 /**
  * @brief Restrict a user in a supergroup. The bot must be an administrator in
@@ -726,7 +726,7 @@ telebot_error_e telebot_unban_chat_member(telebot_handler_t handle, long long in
  * error value.
  */
 telebot_error_e telebot_restrict_chat_member(telebot_handler_t handle,
-    long long int chat_id, int user_id, long until_date, bool can_send_messages,
+    long long int chat_id, long long int user_id, long until_date, bool can_send_messages,
     bool can_send_media_messages, bool can_send_polls, bool can_send_other_messages,
     bool can_add_web_page_previews, bool can_change_info, bool can_invite_users,
     bool can_pin_messages);
@@ -761,7 +761,7 @@ telebot_error_e telebot_restrict_chat_member(telebot_handler_t handle,
  * error value.
  */
 telebot_error_e telebot_promote_chat_member(telebot_handler_t handle,
-    long long int chat_id, int user_id, bool can_change_info, bool can_post_messages,
+    long long int chat_id, long long int user_id, bool can_change_info, bool can_post_messages,
     bool can_edit_messages, bool can_delete_messages, bool can_invite_users,
     bool can_restrict_members, bool can_pin_messages, bool can_promote_members);
 
@@ -779,7 +779,7 @@ telebot_error_e telebot_promote_chat_member(telebot_handler_t handle,
  * error value.
  */
 telebot_error_e telebot_set_chat_admin_custom_title(telebot_handler_t handle,
-    long long int chat_id, int user_id, const char *custom_title);
+    long long int chat_id, long long int user_id, const char *custom_title);
 
 /**
  * @brief Set default chat permissions for all members. The bot must be an administrator
@@ -992,7 +992,7 @@ telebot_error_e telebot_get_chat_members_count(telebot_handler_t handle,
  * error value.
  */
 telebot_error_e telebot_get_chat_member(telebot_handler_t handle, long long int chat_id,
-    int user_id, telebot_chat_member_t *member);
+    long long int user_id, telebot_chat_member_t *member);
 
 /**
  * @brief Release chat member otained with #telebot_get_chat_member().

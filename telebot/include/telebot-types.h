@@ -61,7 +61,15 @@ typedef enum telebot_update_type {
  */
 typedef struct telebot_user {
     /** Unique identifier for this user or bot. */
-    int id;
+
+
+
+/* SINAI BOT FIX */
+	// int id;
+	long long int id;
+/* SINAI BOT FIX */
+
+
 
     /** True, if this user is bot. */
     bool is_bot;
@@ -615,7 +623,11 @@ typedef struct telebot_contact {
     char *last_name;
 
     /** Optional. Contact's user identifier in Telegram */
-    int user_id;
+/* SINAI BOT FIX */
+	// int user_id;
+	long long int user_id;
+/* SINAI BOT FIX */
+
 
     /** Optional. Additional data about the contact in the form of a vCard */
     char *vcard;
