@@ -1844,7 +1844,7 @@ out:
 
 		/* penis table */
 		struct dickstat {
-			I8 name[65535];
+			I8 name[4028];
 			I64 len;
 			bool init;
 		} stats[30];
