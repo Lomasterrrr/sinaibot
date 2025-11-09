@@ -1759,7 +1759,7 @@ out:
 							(nxt<=15)?"значимо":
 							"M A G N U S"
 						,(extra)?"\n  — ⚜️ ___Доступна"
-						" extra-попытка!___ ⚜️":""
+						" extra-попытка!___ /penis ⚜️":""
 					);
 
 					master_send_message(
