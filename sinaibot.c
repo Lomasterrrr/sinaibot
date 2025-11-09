@@ -129,6 +129,10 @@ const I8 *dep_notes[]={
 };
 inline static U0 dep_state(I8 *s, USZ slen, U8 win, U8 jackpot);
 
+/*
+ * КОМАНДЫ РОДА PENIS
+ */
+// XXX
 
 
 
@@ -1704,6 +1708,230 @@ out:
 
 		return;
 
+	}
+	/* о нет, похоже придется снова раскрыть стиль мастера */
+	else if (cmpstrs(cmd,"penis","dick",NULL)) {
+		FILE		*fp,*tmp;
+		I8		line[65535];
+		I8		str[65535];
+		I64		id,idm;
+		time_t		nxt;
+		I64		len;	/* (penis) */
+		U32		n;
+		bool		fnd;
+
+		idm=msg->from->id;
+		if (!(fp=fopen("data/penis","a+")))
+			return;
+		if (!(tmp=tmpfile()))
+			return;
+		
+		fnd=0;
+		rewind(fp);
+		for(;fgets(line,sizeof(line),fp);) {
+			sscanf(line,"%lld %lld %ld",&id,&len,&nxt);
+			if (id==idm) {
+				if (time(NULL)<nxt) {
+					bzero(str,sizeof(str));
+					snprintf(str,sizeof(str),
+						"До следующей "
+						"попытки осталось — %ld сек!",
+						(nxt-time(NULL)));
+					master_send_message(
+						handle,msg->chat->id,str,
+						false,false,msg->message_id,
+						NULL);
+
+					fclose(fp);
+					return;
+				}
+				else {
+					n=urand(0,1);
+					nxt=urand(1,20);
+
+					bzero(str,sizeof(str));
+					snprintf(str,sizeof(str),
+						"*У %s его пенис\n"
+						"  — %s на %ld см* (%s)"
+						,get_name_from_msg(msg)
+						,((n)?"вырос":"сжался")
+						,nxt
+						,(nxt<=5)?"чуть-чуть":
+							(nxt<=8)?"немного":
+							(nxt<=15)?"значимо":
+							"много");
+
+					master_send_message(
+						handle,msg->chat->id,str,
+						false,false,msg->message_id,
+						NULL);
+
+					if (n)
+						len+=nxt;
+					else
+						len-=nxt;
+
+					/* следующая через 10/15/30 мин */
+					n=urand(1,3);
+					switch (n) {
+						case 1: nxt=600; break;
+						case 2: nxt=900; break;
+						case 3: nxt=1800; break;
+					}
+					nxt+=time(NULL);
+
+					fprintf(tmp,"%lld %lld %ld %s\n",
+						id,len,nxt,
+						get_name_from_msg(msg));
+				}
+				++fnd;
+			}
+			else
+				fputs(line,tmp);
+		}
+		if (!fnd) {
+			I8 *emoji;
+			I8 *check;
+
+			len=urand(1,20);
+			if (len<=8)
+				check="микрочлен";
+			else if (len<=15)
+				check="небольшой";
+			else
+				check="неплохо";
+			
+			emoji="👹";
+			bzero(str,sizeof(str));
+			snprintf(str,sizeof(str),
+				"%s*%s вступил в игру%s\n\n"
+				"Входная длинна пениса,\n  — %lld см* (%s)\n\n"
+				"___(Уже через 10 секунд вы сможете\n"
+				"впервые его увеличить!)___\n"
+				,emoji,get_name_from_msg(msg),emoji,len,check);
+			
+			/* у первой попытки задержка 10 сек */
+			fprintf(tmp,"%lld %lld %ld %s\n",
+				idm,len,(time(NULL)+10),
+				get_name_from_msg(msg));
+
+			master_send_message(handle,msg->chat->id,str,
+					false,false,msg->message_id,NULL);
+		}
+
+		rewind(tmp);
+		freopen("data/penis","w",fp);
+		while (fgets(line,sizeof(line),tmp))
+			fputs(line,fp);
+
+		fclose(fp);
+		fclose(tmp);
+
+		return;
+	}
+	else if (!strcmp(cmd,"dicktop")) {
+		FILE		*fp;
+		I8		line[65535];
+		I8		str[65535];
+		I8		tmp[2048];
+		I8		name[2048];
+		I64		len;	/* (penis) */
+		I32		i,j;
+
+		/* penis table */
+		struct dickstat {
+			char name[2048];
+			I64 len;
+			bool init;
+		} stats[10];
+
+		for (i=0;i<10;i++) {
+			stats[i].len=LLONG_MIN; 
+			stats[i].name[0]='\0';
+			stats[i].init=0;
+		}
+		if (!(fp=fopen("data/penis","r")))
+			return;
+		for (;fgets(line,sizeof(line),fp);) {
+			sscanf(line,"%*lld %lld %*ld %s",&len,name);
+			for (i=0;i<10;i++) {
+				if ((len>=0&&stats[i].len<0)||
+					(len>stats[i].len&&
+					!(len>=0&&stats[i].len<0))) {
+
+					for (j=9;j>i;j--)
+						stats[j]=stats[j-1];
+					bzero(stats[i].name,
+						sizeof(stats[i].name));
+					snprintf(stats[i].name,
+						sizeof(stats[i].name),
+						"%s",name);
+					stats[i].len=len;
+					++stats[i].init;
+					break;
+				}
+			}
+		}
+		fclose(fp);
+
+		bzero(str,sizeof(str));
+		for (i=0;i<10&&stats[i].init;i++) {
+			bzero(tmp,sizeof(tmp));
+			snprintf(tmp,sizeof(tmp),
+				"%s ___(%d)___ *%s — %lld см*\n",
+				(i==0)?"👑":(i==1)?"💫":(i==2)?"✨":"",
+				(i+1),stats[i].name,stats[i].len);
+			strcpy(str+strlen(str),tmp);
+		}
+		master_send_message(handle,msg->chat->id,str,
+				false,false,msg->message_id,NULL);
+		return; 
+	}
+	else if (!strcmp(cmd,"dickstat")) {
+		FILE		*fp;
+		I8		line[65535];
+		I8		str[65535];
+		I8		penis[2048];
+		I64		id,idm;
+		time_t		nxt;
+		I64		len,i;	/* (penis) */
+		bool		fnd;
+
+		idm=msg->from->id;
+		if (!(fp=fopen("data/penis","r")))
+			return;
+		
+		fnd=0;
+		for (;fgets(line,sizeof(line),fp);) {
+			sscanf(line,"%lld %lld %ld",&id,&len,&nxt);
+			if (id==idm) {
+				strcpy(penis,"⚪️\n");
+				for (i=1;i<=len;i++)
+					if (i%5==0&&i<=1000)
+						strcpy(penis+strlen(penis),"◻️");
+				if (len<10)
+					strcpy(penis+strlen(penis),"▫️");
+				strcpy(penis+strlen(penis),"\n⚪️");
+				snprintf(str,sizeof(str),
+					"*Идентификатор*: %lld (%s)\n"
+					"*Длинна*: %lld см\n\n"
+					"%s\n\n"
+					"Следующая попытка через %ld сек\n"
+					,id,get_name_from_msg(msg),
+					len,penis,
+					(time(NULL)<nxt)?(nxt-time(NULL)):0);
+				++fnd;
+			}
+		}
+		fclose(fp);
+
+		if (!fnd)
+			snprintf(str,sizeof(str),
+				"Ваша статистика не найдена!");
+
+		master_send_message(handle,msg->chat->id,str,
+				false,false,msg->message_id,NULL);
+		return;
 	}
 
 
