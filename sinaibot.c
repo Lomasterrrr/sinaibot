@@ -56,6 +56,9 @@ I64			group_id;
 telebot_update_t	*updates;
 I32			num_updates;
 I64			c_id;
+USZ			dick_cd_1=300;
+USZ			dick_cd_2=600;
+USZ			dick_cd_3=900;
 
 /*
  * ГОЛОСОВАНИЯ
@@ -1755,7 +1758,7 @@ out:
 						"*У %s его пенис\n"
 						"  — %s на %ld см* (%s)"
 						"%s"
-						"\n\n*Длинна*: %lld см"
+						"\n\n*Длина*: %lld см"
 						,get_name_from_msg(msg)
 						,((n)?"👹 вырос":"💀 сжался")
 						,nxt
@@ -1779,9 +1782,15 @@ out:
 						/* следующая через 5/10/15 мин*/
 						n=urand(1,3);
 						switch (n) {
-							case 1: nxt=300; break;
-							case 2: nxt=600; break;
-							case 3: nxt=900; break;
+							case 1:
+								nxt=dick_cd_1;
+								break;
+							case 2:
+								nxt=dick_cd_2;
+								break;
+							case 3:
+								nxt=dick_cd_3;
+								break;
 						}
 						nxt+=time(NULL);
 					}
@@ -1915,6 +1924,7 @@ out:
 		for (;fgets(line,sizeof(line),fp);) {
 			sscanf(line,"%lld %lld %ld",&id,&len,&nxt);
 			if (id==idm) {
+
 				/* формируем точное изоображение пениса
 				 * т. е. - фоторобот члена. */
 				strcpy(penis,"⚪️\n");
@@ -1927,7 +1937,7 @@ out:
 
 				snprintf(str,sizeof(str),
 					"*Идентификатор*: %lld (%s)\n"
-					"*Длинна*: %lld см\n\n"
+					"*Длина*: %lld см\n\n"
 					"%s\n\n"
 					"Следующая попытка через %ld сек\n"
 					,id,get_name_from_msg(msg),
@@ -1945,6 +1955,43 @@ out:
 
 		master_send_message(handle,msg->chat->id,str,
 				false,false,msg->message_id,NULL);
+		return;
+	}
+	else if (!strcmp(cmd,"dickcd")) {
+		I8 *args[3]={NULL};
+		if (msg->from->username) {
+			if (!strcmp(msg->from->username,admin_user)) {
+				args[0]=strtok(NULL," ");
+				args[1]=strtok(NULL," ");
+				args[2]=strtok(NULL," ");
+
+				if (!args[0]||!args[1]||!args[2]) {
+					botmsg(handle,msg->chat->id,
+						"Не хватает аргументов!");
+					return;
+				}
+				if (!is_digit_string(args[0])
+						||!is_digit_string(args[1])
+						||!is_digit_string(args[2])) {
+					botmsg(handle,msg->chat->id,
+						"Ошибка в аргументах!");
+					return;
+				}
+
+				str_to_USZ(args[0],&dick_cd_1,0,INT_MAX);
+				str_to_USZ(args[1],&dick_cd_2,0,INT_MAX);
+				str_to_USZ(args[2],&dick_cd_3,0,INT_MAX);
+
+				botmsg(handle,msg->chat->id,
+					"*Задержка изменена! Теперь —"
+					" %d %d %d*",
+					dick_cd_1,dick_cd_2,dick_cd_3);
+				return;
+			}
+		}
+		botmsg(handle,msg->chat->id,"*Только администратор может"
+			" изменить cooldown!*\nА не фембой %s!",
+			get_name_from_msg(msg));
 		return;
 	}
 
