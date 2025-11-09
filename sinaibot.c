@@ -1714,6 +1714,7 @@ out:
 		FILE		*fp,*tmp;
 		I8		line[65535];
 		I8		str[65535];
+		I8		name[65535];
 		I64		id,idm;
 		time_t		nxt;
 		I64		len;	/* (penis) */
@@ -1729,8 +1730,8 @@ out:
 		fnd=0;
 		rewind(fp);
 		for(;fgets(line,sizeof(line),fp);) {
-			sscanf(line,"%lld %lld %ld",&id,&len,&nxt);
-			if (id==idm) {
+			sscanf(line,"%lld %lld %ld %s",&id,&len,&nxt,name);
+			if (id==idm&&(!strcmp(name,get_name_from_msg(msg)))) {
 				if (time(NULL)<nxt) {
 					bzero(str,sizeof(str));
 					snprintf(str,sizeof(str),
@@ -1891,6 +1892,7 @@ out:
 		FILE		*fp;
 		I8		line[65535];
 		I8		str[65535];
+		I8		name[65535];
 		I8		penis[2048];
 		I64		id,idm;
 		time_t		nxt;
@@ -1903,8 +1905,8 @@ out:
 		
 		fnd=0;
 		for (;fgets(line,sizeof(line),fp);) {
-			sscanf(line,"%lld %lld %ld",&id,&len,&nxt);
-			if (id==idm) {
+			sscanf(line,"%lld %lld %ld %s",&id,&len,&nxt,name);
+			if (id==idm&&(!strcmp(name,get_name_from_msg(msg)))) {
 				strcpy(penis,"⚪️\n");
 				for (i=1;i<=len;i++)
 					if (i%5==0&&i<=1000)
