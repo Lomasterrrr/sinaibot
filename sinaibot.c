@@ -1725,7 +1725,7 @@ out:
 		fnd=0;
 		rewind(fp);
 		for(;fgets(line,sizeof(line),fp);) {
-			sscanf(line,"%lld %lld %ld %s",&id,&len,&nxt,name);
+			sscanf(line,"%lld %lld %ld %[^\n]",&id,&len,&nxt,name);
 			if (id==idm&&(!strcmp(name,get_name_from_msg(msg)))) {
 				if (time(NULL)<nxt) {
 					bzero(str,sizeof(str));
@@ -1858,7 +1858,7 @@ out:
 		if (!(fp=fopen("data/penis","r")))
 			return;
 		for (;fgets(line,sizeof(line),fp);) {
-			sscanf(line,"%*lld %lld %*ld %s",&len,name);
+			sscanf(line,"%*lld %lld %*ld %[^\n]",&len,name);
 			for (i=0;i<30;i++) {
 				if ((len>=0&&stats[i].len<0)||
 						(len>stats[i].len&&
@@ -1912,7 +1912,7 @@ out:
 		
 		fnd=0;
 		for (;fgets(line,sizeof(line),fp);) {
-			sscanf(line,"%lld %lld %ld %s",&id,&len,&nxt,name);
+			sscanf(line,"%lld %lld %ld %[^\n]",&id,&len,&nxt,name);
 			if (id==idm&&(!strcmp(name,get_name_from_msg(msg)))) {
 
 				/* формируем точное изоображение пениса
