@@ -1858,10 +1858,10 @@ out:
 			I8 name[4028];
 			I64 len;
 			bool init;
-		} stats[30];
+		} stats[50];
 
 		bzero(str,sizeof(str));
-		for (i=0;i<30;i++) {
+		for (i=0;i<50;i++) {
 			stats[i].len=LLONG_MIN; 
 			stats[i].name[0]='\0';
 			stats[i].init=0;
@@ -1870,12 +1870,12 @@ out:
 			return;
 		for (;fgets(line,sizeof(line),fp);) {
 			sscanf(line,"%*lld %lld %*ld %[^\n]",&len,name);
-			for (i=0;i<30;i++) {
+			for (i=0;i<50;i++) {
 				if ((len>=0&&stats[i].len<0)||
 						(len>stats[i].len&&
 						!(len>=0&&stats[i].len<0))) {
 
-					for (j=29;j>i;j--)
+					for (j=49;j>i;j--)
 						stats[j]=stats[j-1];
 
 					bzero(stats[i].name,
@@ -1893,7 +1893,7 @@ out:
 		fclose(fp);
 
 		/* формируем таблицу в str для отправки */
-		for (i=0;i<30&&stats[i].init;i++) {
+		for (i=0;i<50&&stats[i].init;i++) {
 			bzero(tmp,sizeof(tmp));
 			snprintf(tmp,sizeof(tmp),
 				"%s ___(%d)___ *%s — %lld см*\n",
