@@ -2065,6 +2065,8 @@ out:
 			if (id==src) {
 				snprintf(srcname,sizeof(srcname),"%s",name);
 				sf=1;
+				if (len<0)
+					balance=0;
 				if (len<sum)
 					balance=0;
 			}
