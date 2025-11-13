@@ -1936,7 +1936,7 @@ out:
 				strcpy(penis+strlen(penis),"\n⚪️");
 
 				snprintf(str,sizeof(str),
-					"*Идентификатор*: %lld (%s)\n"
+					"*Идентификатор*: `%lld` (%s)\n"
 					"*Длина*: %lld см\n\n"
 					"%s\n\n"
 					"Следующая попытка через %ld сек\n"
@@ -1992,6 +1992,127 @@ out:
 		botmsg(handle,msg->chat->id,"*Только администратор может"
 			" изменить cooldown!*\nА не фембой %s!",
 			get_name_from_msg(msg));
+		return;
+	}
+	else if (!strcmp(cmd,"dicksend")) {
+		I8		*args[2]={NULL};
+		FILE		*fp;
+		FILE		*tmp;
+		I8		line[65535];
+		I8		name[65535];
+		I64		len;
+		time_t		nxt;
+		USZ		id;
+
+		/* специфичные перменные суть: */
+		USZ		src;	/* id отправителя */
+		I8		srcname[65535]; /* имя отправителя */
+		USZ		dst;	/* id получателя */
+		I8		dstname[65535];	/* имя получателя */
+		USZ		sum;	/* сумма отправки */
+		bool		sf;	/* отправитель найден ли */
+		bool		df;	/* получатель найден ли */
+		bool		balance;	/* хватает ли price */
+
+		balance=1;	/* предполагаем что да */
+		sf=df=0;	/* еще не нашли */
+		*srcname='\0';
+		*dstname='\0';
+
+		/* вновь раскрыть почерк мастера? ладно... */
+		src=(USZ)msg->from->id;
+		args[0]=strtok(NULL," ");
+		args[1]=strtok(NULL," ");
+		if (!args[0]||!args[1]) {
+			botmsg(handle,msg->chat->id,"Не хватает аргументов!");
+			return;
+		}
+		/* цифра ли эта строка? :) */
+		if (!is_digit_string(args[0])||!is_digit_string(args[1])) {
+			botmsg(handle,msg->chat->id,"Ошибка в аргументах!");
+			return;
+		}
+		/* вообще, id это long long int, но этой
+		 * функции нужен size_t */
+		str_to_USZ(args[0],&dst,0,SIZE_MAX);
+		str_to_USZ(args[1],&sum,0,SIZE_MAX);
+		if (sum==0) {
+			/* указал больше диапазона, или указал 0 */
+			botmsg(handle,msg->chat->id,"Неверная сумма!");
+			return;
+		}
+		if (dst==src) {
+			botmsg(handle,msg->chat->id,
+				"Нельзя отправить самому себе!");
+			return;
+		}
+		
+		/* не хочу думать над одним циклом, да будет тут три */
+		if (!(fp=fopen("data/penis","a+")))
+			return;
+		
+		/* провяем на ошибки, и парсим что нам нужно */
+		rewind(fp);
+		for (;fgets(line,sizeof(line),fp);) {
+			sscanf(line,"%ld %lld %ld %[^\n]",&id,&len,&nxt,name);
+			if (id==src) {
+				snprintf(srcname,sizeof(srcname),"%s",name);
+				sf=1;
+				if (len<sum)
+					balance=0;
+			}
+			else if (id==dst) {
+				snprintf(dstname,sizeof(dstname),"%s",name);
+				df=1;
+			}
+		}
+		if (!df||!sf||!balance)
+			goto dicksend_out;
+
+		/* начинаем работу */
+		if (!(tmp=tmpfile()))
+			return;
+
+		rewind(fp);
+		for (;fgets(line,sizeof(line),fp);) {
+			sscanf(line,"%ld %lld %ld %[^\n]",&id,&len,&nxt,name);
+
+			/* зная что могут быть ошибки, нам важен порядок
+			 * проверки; в нашем случае мы уверены в их
+			 * отсутствии */
+			if (id==src)
+				len-=sum;
+			if (id==dst)
+				len+=sum;
+
+			fprintf(tmp,"%ld %lld %ld %s\n",id,len,nxt,name);
+		}
+
+		rewind(tmp);
+		freopen("data/penis","w",fp);
+		for (;fgets(line,sizeof(line),tmp);)
+			fputs(line,fp);
+		fclose(fp);
+		fclose(tmp);
+
+dicksend_out:
+		botmsg(handle,msg->chat->id,
+			"*Отправитель:* `%ld` (%s)\n"
+			"*Получатель:* `%ld` (%s)\n"
+			"*Дата:* %s\n"
+			"*Статус:* %s\n"
+			"*Сумма:* %ld см\n\n"
+			"%s"
+			"%s"
+			"%s"
+			,src,srcname,dst,dstname,curtime(0),
+			((sf&&df&&balance)?"успех":"неудача"),
+			sum,
+			((!sf)?"Отправитель не найден!\n":""),
+			((!df)?"Получатель не найден!\n":""),
+			((!balance)?"Недостаточно средств!\n":"")
+		);
+
 		return;
 	}
 	else if (!strcmp(cmd,"dickreset")) {
