@@ -2025,6 +2025,13 @@ out:
 		args[1]=strtok(NULL," ");
 		if (!args[0]||!args[1]) {
 			botmsg(handle,msg->chat->id,"Не хватает аргументов!");
+			botmsg(handle,msg->chat->id,
+				"*Используйте*:\n  /dicksend ___"
+				"<id получателя> <кол. см>___\n"
+
+				"\n*Например:*\n  /dicksend ___9004184307"
+				" 100___\n"
+			);
 			return;
 		}
 		/* цифра ли эта строка? :) */
