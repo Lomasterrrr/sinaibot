@@ -81,6 +81,8 @@ telebot_core_curl_perform(telebot_core_handler_t *core_h, const char *method,
 	char URL[TELEBOT_URL_SIZE];
 	snprintf(URL, TELEBOT_URL_SIZE, "%s/bot%s/%s", TELEBOT_API_URL,
 	    core_h->token, method);
+	/* ktotonokto fix (ipv6 don`t work) */
+	curl_easy_setopt(curl_h, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
 	curl_easy_setopt(curl_h, CURLOPT_URL, URL);
 	curl_easy_setopt(curl_h, CURLOPT_WRITEFUNCTION, write_data_cb);
 	curl_easy_setopt(curl_h, CURLOPT_WRITEDATA, resp);
