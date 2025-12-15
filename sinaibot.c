@@ -56,9 +56,15 @@ static I64 group_id;
 static telebot_update_t *updates;
 static I32 num_updates;
 static I64 c_id;
-static USZ dick_cd_1 = 300;
-static USZ dick_cd_2 = 600;
-static USZ dick_cd_3 = 900;
+
+static USZ dick_n = 32; /* максимальное значение увеличение или уменьшени */
+static USZ dick_fortuna = 0;	 /* удача */
+static USZ dick_prob_inc = 50;	 /* шанс увеличения */
+static USZ dick_prob_save = 50;	 /* шанс спасения */
+static USZ dick_prob_extra = 50; /* шанс экстра попытки */
+static USZ dick_cd_1 = 300;	 /* задержка 1 */
+static USZ dick_cd_2 = 600;	 /* задержка 2 */
+static USZ dick_cd_3 = 900;	 /* задержка 3 */
 
 /*
  * ГОЛОСОВАНИЯ
@@ -1368,6 +1374,14 @@ timefmt_s(double s, char *buf, size_t n)
 	return buf;
 }
 
+inline static USZ
+with_fortuna(USZ base, USZ fortuna)
+{
+	if (base >= 100 || fortuna == 0)
+		return base;
+	return base + (100 - base) * fortuna / 100;
+}
+
 inline static void
 penis(telebot_handler_t handle, telebot_message_t *msg)
 {
@@ -1405,13 +1419,23 @@ penis(telebot_handler_t handle, telebot_message_t *msg)
 				fclose(fp);
 				return;
 			} else {
-				n = urand(0, 1);
-				nxt = urand(1, 32);
-				extra = urand(0, 1);
+				n = 0;
 				anull = 0;
+				extra = 0;
+
+				nxt = urand(1, dick_n);
+				if (urand(1, 100) <=
+				    with_fortuna(dick_prob_inc, dick_fortuna))
+					n = 1;
+				if (urand(1, 100) <=
+				    with_fortuna(dick_prob_extra, dick_fortuna))
+					extra = 1;
 
 				if (n) {
-					if (len < 0 && (urand(0, 10) == 10)) {
+					if (len < 0 &&
+					    (urand(1, 100) <=
+						with_fortuna(dick_prob_save,
+						    dick_fortuna))) {
 						nxt = llabs(len);
 						anull = 1;
 					}
@@ -1703,39 +1727,58 @@ dickstat(telebot_handler_t handle, telebot_message_t *msg)
 }
 
 inline static void
-dickcd(telebot_handler_t handle, telebot_message_t *msg, I8 **args)
+dickopt(telebot_handler_t handle, telebot_message_t *msg, I8 **args)
 {
 	if (msg->from->username) {
 		if (!strcmp(msg->from->username, admin_user)) {
-			if (!args[0] || !args[1] || !args[2]) {
+			if (!args[0] || !args[1] || !args[2] || !args[3] ||
+			    !args[4] || !args[5] || !args[6] || !args[7]) {
 				botmsg(handle, msg->chat->id,
 				    "Не хватает аргументов!");
 				return;
 			}
 
-			if (!u_numarg(args[0], 0, INT_MAX, &dick_cd_1,
-				sizeof(dick_cd_1))) {
+			if (!u_numarg(args[0], 1, SIZE_MAX, &dick_n,
+				sizeof(dick_n))) {
+			err:
 				botmsg(handle, msg->chat->id,
 				    "Ошибка в аргументах!");
 				return;
 			}
-			if (!u_numarg(args[1], 0, INT_MAX, &dick_cd_2,
-				sizeof(dick_cd_2))) {
-				botmsg(handle, msg->chat->id,
-				    "Ошибка в аргументах!");
-				return;
-			}
-			if (!u_numarg(args[2], 0, INT_MAX, &dick_cd_3,
-				sizeof(dick_cd_3))) {
-				botmsg(handle, msg->chat->id,
-				    "Ошибка в аргументах!");
-				return;
-			}
+			if (!u_numarg(args[1], 1, 100, &dick_prob_inc,
+				sizeof(dick_prob_inc)))
+				goto err;
+			if (!u_numarg(args[2], 1, 100, &dick_prob_save,
+				sizeof(dick_prob_save)))
+				goto err;
+			if (!u_numarg(args[3], 1, 100, &dick_prob_extra,
+				sizeof(dick_prob_extra)))
+				goto err;
+			if (!u_numarg(args[4], 0, SIZE_MAX, &dick_cd_1,
+				sizeof(dick_cd_1)))
+				goto err;
+			if (!u_numarg(args[5], 0, SIZE_MAX, &dick_cd_2,
+				sizeof(dick_cd_2)))
+				goto err;
+			if (!u_numarg(args[6], 0, SIZE_MAX, &dick_cd_3,
+				sizeof(dick_cd_3)))
+				goto err;
+			if (!u_numarg(args[7], 0, 100, &dick_fortuna,
+				sizeof(dick_fortuna)))
+				goto err;
 
 			botmsg(handle, msg->chat->id,
-			    "*Задержка изменена! Теперь —"
-			    " %d %d %d*",
-			    dick_cd_1, dick_cd_2, dick_cd_3);
+			    "*Максимальное значение:* %zu\n"
+			    "*Шанс увеличения:* %zu %%\n"
+			    "*Шанс спасения:* %zu %%\n"
+			    "*Шанс экстра попытки:* %zu %%\n"
+			    "*Задержка 1:* %zu сек.\n"
+			    "*Задержка 2:* %zu сек.\n"
+			    "*Задержка 3:* %zu сек.\n"
+			    "*Удача:* %zu",
+			    dick_n, dick_prob_inc, dick_prob_save,
+			    dick_prob_extra, dick_cd_1, dick_cd_2, dick_cd_3,
+			    dick_fortuna);
 
 			return;
 		}
@@ -1743,7 +1786,7 @@ dickcd(telebot_handler_t handle, telebot_message_t *msg, I8 **args)
 
 	botmsg(handle, msg->chat->id,
 	    "*Только администратор может"
-	    " изменить задержку!*\nА не фембой %s!",
+	    " изменять параметры!*\nА не фембой %s!",
 	    get_name_from_msg(msg));
 
 	return;
@@ -2325,10 +2368,12 @@ command(telebot_handler_t handle, telebot_message_t *msg)
 	else if (!strcmp(cmd, "dicksum"))
 		return dicksum(handle, msg);
 
-	else if (!strcmp(cmd, "dickcd")) {
-		I8 *args[3] = { strtok(NULL, " "), strtok(NULL, " "),
+	else if (!strcmp(cmd, "dickopt")) {
+		I8 *args[8] = { strtok(NULL, " "), strtok(NULL, " "),
+			strtok(NULL, " "), strtok(NULL, " "), strtok(NULL, " "),
+			strtok(NULL, " "), strtok(NULL, " "),
 			strtok(NULL, " ") };
-		return dickcd(handle, msg, args);
+		return dickopt(handle, msg, args);
 	}
 
 	else if (!strcmp(cmd, "dicksend")) {
