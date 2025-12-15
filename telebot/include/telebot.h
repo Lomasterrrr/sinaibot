@@ -20,8 +20,7 @@
 #define __TELEBOT_H__
 
 #include "telebot-common.h"
-#include "telebot-types.h"
 #include "telebot-methods.h"
+#include "telebot-types.h"
 
 #endif /* __TELEBOT_H__ */
-

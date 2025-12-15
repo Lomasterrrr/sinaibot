@@ -44,94 +44,95 @@ extern "C" {
  * placed by default.
  */
 typedef struct telebot_mask_position {
-    /**
-     * The part of the face relative to which the mask should be placed.
-     * One of "forehead", "eyes", "mouth", or "chin".
-     */
-    char *point;
+	/**
+	 * The part of the face relative to which the mask should be placed.
+	 * One of "forehead", "eyes", "mouth", or "chin".
+	 */
+	char *point;
 
-    /**
-     * Shift by X-axis measured in widths of the mask scaled to the face size,
-     * from left to right. For example, choosing -1.0 will place mask just to
-     * the left of the default mask position.
-     */
-    float x_shift;
+	/**
+	 * Shift by X-axis measured in widths of the mask scaled to the face
+	 * size, from left to right. For example, choosing -1.0 will place mask
+	 * just to the left of the default mask position.
+	 */
+	float x_shift;
 
-    /**
-     * Shift by Y-axis measured in heights of the mask scaled to the face size,
-     * from top to bottom. For example, 1.0 will place the mask just below the
-     * default mask position.
-     */
-    float y_shift;
+	/**
+	 * Shift by Y-axis measured in heights of the mask scaled to the face
+	 * size, from top to bottom. For example, 1.0 will place the mask just
+	 * below the default mask position.
+	 */
+	float y_shift;
 
-    /** Mask scaling coefficient. For example, 2.0 means double size. */
-    float scale;
+	/** Mask scaling coefficient. For example, 2.0 means double size. */
+	float scale;
 } telebot_mask_position_t;
-
 
 /**
  * @brief This object represents a sticker.
  */
 typedef struct telebot_sticker {
-    /** Identifier for this file, which can be used to download or reuse the file */
-    char *file_id;
+	/** Identifier for this file, which can be used to download or reuse the
+	 * file */
+	char *file_id;
 
-    /**
-     * Unique identifier for this file, which is supposed to be the same over time
-     * and for different bots. Can't be used to download or reuse the file.
-     */
-    char *file_unique_id;
+	/**
+	 * Unique identifier for this file, which is supposed to be the same
+	 * over time and for different bots. Can't be used to download or reuse
+	 * the file.
+	 */
+	char *file_unique_id;
 
-    /** Sticker width */
-    int width;
+	/** Sticker width */
+	int width;
 
-    /** Sticker height */
-    int height;
+	/** Sticker height */
+	int height;
 
-    /** True, if the sticker is animated */
-    bool is_animated;
+	/** True, if the sticker is animated */
+	bool is_animated;
 
-    /** Optional. Sticker thumbnail in .webp or .jpg format */
-    struct telebot_photo *thumb;
+	/** Optional. Sticker thumbnail in .webp or .jpg format */
+	struct telebot_photo *thumb;
 
-    /** Optional. Emoji associated with the sticker. */
-    char *emoji;
+	/** Optional. Emoji associated with the sticker. */
+	char *emoji;
 
-    /** Optional. Name of the sticker set to which the sticker belongs */
-    char *set_name;
+	/** Optional. Name of the sticker set to which the sticker belongs */
+	char *set_name;
 
-    /** Optional. For mask stickers, the position where the mask should be placed. */
-    struct telebot_mask_position *mask_position;
+	/** Optional. For mask stickers, the position where the mask should be
+	 * placed. */
+	struct telebot_mask_position *mask_position;
 
-    /** Optional. File size */
-    int file_size;
+	/** Optional. File size */
+	int file_size;
 } telebot_sticker_t;
-
 
 /**
  * @brief This object represents a sticker set.
  */
 typedef struct telebot_sticker_set {
-    /** Sticker set name */
-    char *name;
+	/** Sticker set name */
+	char *name;
 
-    /** Sticker set title */
-    char *title;
+	/** Sticker set title */
+	char *title;
 
-    /** True, if the sticker is animated */
-    bool is_animated;
+	/** True, if the sticker is animated */
+	bool is_animated;
 
-    /** True, if the sticker set contains masks */
-    bool contains_masks;
+	/** True, if the sticker set contains masks */
+	bool contains_masks;
 
-    /** List of all set stickers */
-    telebot_sticker_t *stickers;
+	/** List of all set stickers */
+	telebot_sticker_t *stickers;
 
-    /* Number of stickers */
-    int count_stickers;
+	/* Number of stickers */
+	int count_stickers;
 
-    /** Optional. Sticker set thumbnail in .webp or .jpg format */
-    struct telebot_photo *thumb;
+	/** Optional. Sticker set thumbnail in .webp or .jpg format */
+	struct telebot_photo *thumb;
 
 } telebot_sticker_set_t;
 
@@ -143,17 +144,19 @@ typedef struct telebot_sticker_set {
  * target channel (in the format \@channelusername)
  * @param[in] sticker Sticker file to send. It is either a file_id to resend
  * a sticker that is already on the Telegram servers, or a path to file.
- * @param[in] is_file False if sticker is file_id, true, if sticker is a file path.
+ * @param[in] is_file False if sticker is file_id, true, if sticker is a file
+ * path.
  * @param[in] reply_to_message_id If the message is a reply, ID of the original
  * message.
  * @param[in] reply_markup Additional interface options. An object for a custom
- * reply keyboard, instructions to hide keyboard or to force a reply from the user.
+ * reply keyboard, instructions to hide keyboard or to force a reply from the
+ * user.
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_send_sticker(telebot_handler_t handle, long long int chat_id,
-        const char *sticker, bool is_file, bool disable_notification,
-        int reply_to_message_id, char *reply_markup);
+telebot_error_e telebot_send_sticker(telebot_handler_t handle,
+    long long int chat_id, const char *sticker, bool is_file,
+    bool disable_notification, int reply_to_message_id, char *reply_markup);
 
 /**
  * @brief Get a sticker set.
@@ -165,8 +168,8 @@ telebot_error_e telebot_send_sticker(telebot_handler_t handle, long long int cha
  * @return on Success, #TELEBOT_ERROR_NONE is returned, otherwise a negative
  * error value.
  */
-telebot_error_e telebot_get_sticker_set(telebot_handler_t handle, const char *name,
-    telebot_sticker_set_t *stickers);
+telebot_error_e telebot_get_sticker_set(telebot_handler_t handle,
+    const char *name, telebot_sticker_set_t *stickers);
 
 /**
  * @brief Release sticker set obtained with #telebot_get_sticker_set()
