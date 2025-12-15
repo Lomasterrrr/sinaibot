@@ -1743,7 +1743,7 @@ dickcd(telebot_handler_t handle, telebot_message_t *msg, I8 **args)
 
 	botmsg(handle, msg->chat->id,
 	    "*Только администратор может"
-	    " изменить cooldown!*\nА не фембой %s!",
+	    " изменить задержку!*\nА не фембой %s!",
 	    get_name_from_msg(msg));
 
 	return;
@@ -1868,6 +1868,62 @@ dicksend_out:
 	    ((!df) ? "Получатель не найден!\n" : ""),
 	    ((!balance) ? "Недостаточно средств!\n" : ""));
 
+	return;
+}
+
+inline static void
+uint128str(__uint128_t val, char *buf)
+{
+	I32 i = 0, j = 0;
+	char tmp[40];
+
+	if (val == 0) {
+		buf[0] = '0';
+		buf[1] = '\0';
+		return;
+	}
+	while (val > 0) {
+		tmp[i++] = '0' + (val % 10);
+		val /= 10;
+	}
+	while (i > 0)
+		buf[j++] = tmp[--i];
+	buf[j] = '\0';
+}
+
+inline static void
+dicksum(telebot_handler_t handle, telebot_message_t *msg)
+{
+	I8 line[65535];
+	I8 sumbuf[40];
+	FILE *fp;
+	I64 len;
+
+	__uint128_t sum = 0; /* total */
+	bool ovflg = 0;	     /* overflow flag */
+
+	if (!(fp = fopen("data/penis", "a+")))
+		return;
+	rewind(fp);
+	for (; fgets(line, sizeof(line), fp);) {
+		sscanf(line, "%*lld %lld", &len);
+		if (len > 0) {
+			if (sum + (__uint128_t)len < sum) {
+				ovflg = 1;
+				break;
+			} else
+				sum += len;
+		}
+	}
+
+	fclose(fp);
+
+	if (!ovflg)
+		uint128str(sum, sumbuf);
+	else
+		snprintf(sumbuf, sizeof(sumbuf), "(более 128 байт)");
+
+	botmsg(handle, msg->chat->id, "*Общая сумма пенисов:* %s см", sumbuf);
 	return;
 }
 
@@ -2265,6 +2321,9 @@ command(telebot_handler_t handle, telebot_message_t *msg)
 
 	else if (!strcmp(cmd, "dickstat"))
 		return dickstat(handle, msg);
+
+	else if (!strcmp(cmd, "dicksum"))
+		return dicksum(handle, msg);
 
 	else if (!strcmp(cmd, "dickcd")) {
 		I8 *args[3] = { strtok(NULL, " "), strtok(NULL, " "),
