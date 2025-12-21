@@ -783,7 +783,7 @@ femboyday(telebot_handler_t handle, telebot_message_t *msg)
 	fgets(buf, sizeof(buf), fp);
 	fclose(fp);
 
-	sscanf(buf, "%*8c %*lld %[^\n]", femboy);
+	sscanf(buf, "%*8c %*ld %*lld %[^\n]", femboy);
 	botmsg(handle, msg->chat->id, "*👉👈 Фембой дня — %s*", &femboy);
 }
 
@@ -795,7 +795,7 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
-	femboy_n = urand(1, 256);
+	femboy_n = urand(1, 45);
 
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);
@@ -818,9 +818,15 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
+	/* Time? */
+	sscanf(buf, "%*8c %ld", &t);
+	if (time(NULL) < t) {
+		fclose(fp);
+		return;
+	}
+
 	fseek(fp, 0, SEEK_SET);
-	fprintf(fp, "%s %lld %s\n", date, msg->from->id,
-	    get_name_from_msg(msg));
+	fprintf(fp, "%s %ld %lld %s\n", date, (time_t)(time(NULL) + urand(256, 21600)), msg->from->id, get_name_from_msg(msg));
 	if (ftell(fp) < oldlen) {
 		t = fileno(fp);
 		ftruncate(t, ftell(fp));
