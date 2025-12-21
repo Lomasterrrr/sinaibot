@@ -826,7 +826,9 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 	}
 
 	fseek(fp, 0, SEEK_SET);
-	fprintf(fp, "%s %ld %lld %s\n", date, (time_t)(time(NULL) + urand(256, 21600)), msg->from->id, get_name_from_msg(msg));
+	fprintf(fp, "%s %ld %lld %s\n", date,
+	    (time_t)(time(NULL) + urand(256, 21600)), msg->from->id,
+	    get_name_from_msg(msg));
 	if (ftell(fp) < oldlen) {
 		t = fileno(fp);
 		ftruncate(t, ftell(fp));
