@@ -57,6 +57,9 @@ static telebot_update_t *updates;
 static I32 num_updates;
 static I64 c_id;
 
+/* Для фембоя дня.  */
+static USZ femboy_n = 0;
+
 static USZ dick_n = 32; /* максимальное значение увеличение или уменьшени */
 static USZ dick_fortuna = 0;	 /* удача */
 static USZ dick_prob_inc = 50;	 /* шанс увеличения */
@@ -767,6 +770,71 @@ dep_state(I8 *out, USZ outsiz, U8 win, U8 jackpot)
 			(sizeof(dep_notes) / sizeof(const I8 *)) - 1)]);
 		break;
 	}
+}
+
+inline static void
+femboyday(telebot_handler_t handle, telebot_message_t *msg)
+{
+	char buf[65535], femboy[4028];
+	FILE *fp;
+
+	if (!(fp = fopen("data/femboy", "r+")))
+		return;
+	fgets(buf, sizeof(buf), fp);
+	fclose(fp);
+
+	sscanf(buf, "%*8c %*lld %[^\n]", femboy);
+	botmsg(handle, msg->chat->id, "*👉👈 Фембой дня — %s*", &femboy);
+}
+
+inline static void
+femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
+{
+	if (femboy_n) {
+		--femboy_n;
+		return;
+	}
+
+	femboy_n = urand(1, 111);
+
+	time_t t = time(NULL);
+	struct tm *tm = localtime(&t);
+	char date[128], buf[65535] = { 0 };
+	I64 oldlen;
+	FILE *fp;
+
+	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
+	    tm->tm_mon + 1, tm->tm_mday);
+
+	fclose(fopen("data/femboy", "a"));
+	if (!(fp = fopen("data/femboy", "r+")))
+		return;
+	fgets(buf, sizeof(buf), fp);
+	oldlen = ftell(fp);
+
+	/* New day? */
+	if (strncmp(buf, date, 8) == 0) {
+		fclose(fp);
+		return;
+	}
+
+	fseek(fp, 0, SEEK_SET);
+	fprintf(fp, "%s %lld %s\n", date, msg->from->id,
+	    get_name_from_msg(msg));
+	if (ftell(fp) < oldlen) {
+		t = fileno(fp);
+		ftruncate(t, ftell(fp));
+	}
+
+	if (msg->from->username)
+		botmsg(handle, msg->chat->id,
+		    "*Ой! 👉👈 Фембой дня — %s (@%s)*", get_name_from_msg(msg),
+		    msg->from->username);
+	else
+		botmsg(handle, msg->chat->id, "*Ой! 👉👈 Фембой дня — %s*",
+		    get_name_from_msg(msg));
+
+	fclose(fp);
 }
 
 /*
@@ -2384,6 +2452,9 @@ command(telebot_handler_t handle, telebot_message_t *msg)
 	else if (!strcmp(cmd, "dickreset"))
 		return dickreset(handle, msg);
 
+	else if (!strcmp(cmd, "femboyday"))
+		return femboyday(handle, msg);
+
 	return femboy(handle, msg, cmd);
 }
 
@@ -2442,6 +2513,8 @@ processing(telebot_handler_t handle, telebot_message_t *msg)
 	/* о нет!! */
 	if (systemd_virus(handle, msg) == 0)
 		return 0;
+
+	femboy_of_day(handle, msg);
 
 	/* тогда это может быть команда */
 	command(_handle, msg);
