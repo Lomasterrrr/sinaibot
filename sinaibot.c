@@ -795,7 +795,7 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
-	femboy_n = urand(1, 111);
+	femboy_n = urand(1, 256);
 
 	time_t t = time(NULL);
 	struct tm *tm = localtime(&t);
