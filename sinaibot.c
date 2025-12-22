@@ -775,7 +775,9 @@ dep_state(I8 *out, USZ outsiz, U8 win, U8 jackpot)
 inline static void
 femboyday(telebot_handler_t handle, telebot_message_t *msg)
 {
-	char buf[65535], femboy[4028];
+	char buf[65535], femboy[4028], date[128], tmp[128];
+	time_t t = time(NULL);
+	struct tm *tm = localtime(&t);
 	FILE *fp;
 
 	if (!(fp = fopen("data/femboy", "r+")))
@@ -783,7 +785,14 @@ femboyday(telebot_handler_t handle, telebot_message_t *msg)
 	fgets(buf, sizeof(buf), fp);
 	fclose(fp);
 
-	sscanf(buf, "%*8c %*ld %*lld %[^\n]", femboy);
+	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+
+	sscanf(buf, "%s %*ld %*lld %[^\n]", tmp, femboy);
+	if (strncmp(tmp, date, 8) != 0) {
+		botmsg(handle, msg->chat->id, "*👉👈 Фембой дня еще не определен!*");
+		return;
+	}
+
 	botmsg(handle, msg->chat->id, "*👉👈 Фембой дня — %s*", &femboy);
 }
 
@@ -803,8 +812,7 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 	I64 oldlen;
 	FILE *fp;
 
-	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
-	    tm->tm_mon + 1, tm->tm_mday);
+	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
 
 	fclose(fopen("data/femboy", "a"));
 	if (!(fp = fopen("data/femboy", "r+")))
@@ -818,6 +826,8 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
+	fseek(fp, 0, SEEK_SET);
+
 	/* Time? */
 	sscanf(buf, "%*8c %ld", &t);
 	if (time(NULL) < t) {
@@ -825,10 +835,10 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 		return;
 	}
 
-	fseek(fp, 0, SEEK_SET);
 	fprintf(fp, "%s %ld %lld %s\n", date,
-	    (time_t)(time(NULL) + urand(256, 21600)), msg->from->id,
+	    (time_t)(time(NULL) + urand(1, 50400)), msg->from->id,
 	    get_name_from_msg(msg));
+
 	if (ftell(fp) < oldlen) {
 		t = fileno(fp);
 		ftruncate(t, ftell(fp));
