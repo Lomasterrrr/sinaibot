@@ -585,6 +585,26 @@ get_name_from_user(telebot_user_t *user)
 	return "none";
 }
 
+inline static bool
+compare_names_from_user(telebot_user_t *user, const char *n)
+{
+	if (!user)
+		return 0;
+	if (user->username)
+		if (strlen(user->username) > 0)
+			if (!strcasecmp(user->username, n))
+				return 1;
+	if (user->first_name)
+		if (strlen(user->first_name) > 0)
+			if (!strcmp(user->first_name, n))
+				return 1;
+	if (user->last_name)
+		if (strlen(user->last_name) > 0)
+			if (!strcmp(user->last_name, n))
+				return 1;
+	return 0;
+}
+
 inline static const I8 *
 get_name_from_msg(telebot_message_t *msg)
 {
@@ -785,11 +805,13 @@ femboyday(telebot_handler_t handle, telebot_message_t *msg)
 	fgets(buf, sizeof(buf), fp);
 	fclose(fp);
 
-	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
+	    tm->tm_mon + 1, tm->tm_mday);
 
 	sscanf(buf, "%s %*ld %*lld %[^\n]", tmp, femboy);
 	if (strncmp(tmp, date, 8) != 0) {
-		botmsg(handle, msg->chat->id, "*👉👈 Фембой дня еще не определен!*");
+		botmsg(handle, msg->chat->id,
+		    "*👉👈 Фембой дня еще не определен!*");
 		return;
 	}
 
@@ -812,7 +834,8 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 	I64 oldlen;
 	FILE *fp;
 
-	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday);
+	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
+	    tm->tm_mon + 1, tm->tm_mday);
 
 	fclose(fopen("data/femboy", "a"));
 	if (!(fp = fopen("data/femboy", "r+")))
@@ -2178,6 +2201,121 @@ femboy(telebot_handler_t handle, telebot_message_t *msg, char *cmd)
 }
 
 inline static void
+loveact(telebot_handler_t handle, telebot_message_t *msg, const char *name,
+    const char *act)
+{
+	I8 buf[USHRT_MAX];
+	const I8 *heart;
+
+	if (!name || !act) {
+		botmsg(handle, msg->chat->id, "Не хватает аргументов!");
+		if (!act)
+			botmsg(handle, msg->chat->id,
+			    "*Используйте*:\n  /loveact ___"
+			    "<имя> <действие>___\n"
+
+			    "\n*Например:*\n  /loveact ___питтака"
+			    " учит геометрии___\n");
+		else {
+			const I8 *cmd = "???";
+			if (!strcmp(act, "гладит"))
+				cmd = "pat";
+			else if (!strcmp(act, "обнимает"))
+				cmd = "hug";
+			else if (!strcmp(act, "щекочет"))
+				cmd = "tickle";
+
+			snprintf(buf, sizeof(buf),
+			    "*Используйте*:\n  /%s ___"
+			    "<имя>___\n"
+
+			    "\n*Например:*\n  /%s ___питтака"
+			    "___\n",
+			    cmd, cmd);
+
+			master_send_message(handle, msg->chat->id, buf, false,
+			    false, 0, NULL);
+		}
+		return;
+	}
+
+	if (compare_names_from_user(msg->from, name)) {
+		snprintf(buf, sizeof(buf), "Вы себя не можете!\n*Но %s %s*",
+		    act, get_name_from_msg(msg));
+		master_send_message(handle, msg->chat->id, buf, false, false,
+		    msg->message_id, NULL);
+		return;
+	}
+
+	switch (urand(0, 18)) {
+	default:
+	case 0:
+		heart = "💛";
+		break;
+	case 1:
+		heart = "🖤";
+		break;
+	case 2:
+		heart = "💖";
+		break;
+	case 3:
+		heart = "🩶";
+		break;
+	case 4:
+		heart = "💝";
+		break;
+	case 5:
+		heart = "💜";
+		break;
+	case 6:
+		heart = "💞";
+		break;
+	case 7:
+		heart = "💙";
+		break;
+	case 8:
+		heart = "💗";
+		break;
+	case 9:
+		heart = "🧡";
+		break;
+	case 10:
+		heart = "❣️";
+		break;
+	case 11:
+		heart = "💚";
+		break;
+	case 12:
+		heart = "❤️";
+		break;
+	case 13:
+		heart = "💕";
+		break;
+	case 14:
+		heart = "💓";
+		break;
+	case 15:
+		heart = "🩷";
+		break;
+	case 16:
+		heart = "♥️";
+		break;
+	case 17:
+		heart = "🩵";
+		break;
+	case 18:
+		heart = "💘";
+		break;
+	}
+
+	snprintf(buf, sizeof(buf), "*%s %s %s — %s %s*", heart,
+	    get_name_from_msg(msg), act, name, heart);
+
+	master_send_message(handle, msg->chat->id, buf, false, false,
+	    msg->message_id, NULL);
+}
+
+inline static void
 check_vote_commands(telebot_handler_t handle, telebot_message_t *msg, char *cmd)
 {
 	cvector_iterator(vote_t) it = NULL;
@@ -2472,6 +2610,36 @@ command(telebot_handler_t handle, telebot_message_t *msg)
 
 	else if (!strcmp(cmd, "femboyday"))
 		return femboyday(handle, msg);
+
+	else if (!strcmp(cmd, "hug"))
+		return loveact(handle, msg, strtok(NULL, " "), "обнимает");
+
+	else if (!strcmp(cmd, "tickle"))
+		return loveact(handle, msg, strtok(NULL, " "), "щекочет");
+
+	else if (!strcmp(cmd, "pat"))
+		return loveact(handle, msg, strtok(NULL, " "), "гладит");
+
+	else if (!strcmp(cmd, "loveact")) {
+		I8 *args[512] = { NULL }, *p, *name;
+		I8 buf[USHRT_MAX] = { 0 };
+		USZ n = 0;
+
+		name = strtok(NULL, " ");
+		for (p = strtok(NULL, " "); p && n < 512; p = strtok(NULL, " "))
+			args[n++] = p;
+		if (n == 0)
+			return loveact(handle, msg, name, NULL);
+
+		for (USZ i = 0; i < n; i++) {
+			strncat(buf, args[i], sizeof(buf) - strlen(buf) - 1);
+			if (i < n - 1)
+				strncat(buf, " ",
+				    sizeof(buf) - strlen(buf) - 1);
+		}
+
+		return loveact(handle, msg, name, buf);
+	}
 
 	return femboy(handle, msg, cmd);
 }
