@@ -1,5 +1,4 @@
 #include "../include/sia.h"
-#include "json-c/json_object.h"
 
 bool
 SIAUPDATE(SIA *sia, const char *json)

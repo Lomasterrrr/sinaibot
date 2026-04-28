@@ -51,9 +51,6 @@ move semantics 0.9
 moved here 0.8
 mutex 0.4
 nightly rust 1.0
-nom 0.7
-option 0.4
-ownership 0.7
 pattern matching 0.5
 phantomdata 1.0
 pin< 0.8

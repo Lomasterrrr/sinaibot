@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "../include/sia.h"
 #include "reports.h"
 

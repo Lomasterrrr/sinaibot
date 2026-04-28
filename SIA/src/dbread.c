@@ -1,7 +1,3 @@
-#include <string.h>
-
-#include "json-c/json_object.h"
-#include "json-c/json_tokener.h"
 #include "reports.h"
 
 sqlite3_stmt *

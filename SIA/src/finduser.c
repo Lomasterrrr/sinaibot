@@ -5,7 +5,6 @@ ismatch(struct json_object *j, const utf8proc_uint8_t *nname)
 {
 	utf8proc_uint8_t *norm;
 	bool match = 0;
-
 	if (!j || !nname)
 		return 0;
 	if (json_object_get_type(j) != json_type_string)
@@ -14,10 +13,8 @@ ismatch(struct json_object *j, const utf8proc_uint8_t *nname)
 	    &norm, UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
 	if (!norm)
 		return 0;
-
 	if (strstr((const char *)norm, (const char *)nname))
 		match = 1;
-
 	free(norm);
 	return match;
 }
@@ -25,8 +22,17 @@ ismatch(struct json_object *j, const utf8proc_uint8_t *nname)
 static inline const char *
 safejsonstr(struct json_object *j)
 {
-	if (j && json_object_get_type(j) == json_type_string)
-		return json_object_get_string(j);
+	static char tmp[1024];
+	if (j && json_object_get_type(j) == json_type_string) {
+		strlcpy(tmp, json_object_get_string(j), sizeof(tmp));
+		char *p = tmp;
+		while (*p) {
+			if (*p == '_')
+				*p = '-';
+			++p;
+		}
+		return tmp;
+	}
 	return "—";
 }
 
@@ -40,7 +46,9 @@ finduser(SIA *sia, const char *name, FILE *out)
 
 	typedef struct {
 		long long int id;
-		char name[512];
+		char firstname[512];
+		char lastname[512];
+		char username[512];
 	} user;
 	cvector(user) ids = NULL;
 
@@ -83,9 +91,12 @@ finduser(SIA *sia, const char *name, FILE *out)
 		for (k = 0; k < sizeof(p) / sizeof(*p); ++k) {
 			if (ismatch(p[k], norm)) {
 				user u = { .id = id };
-				snprintf(u.name, sizeof(u.name), "%s %s @%s",
-				    safejsonstr(p[0]), safejsonstr(p[1]),
-				    safejsonstr(p[2]));
+				strlcpy(u.firstname, safejsonstr(p[0]),
+				    sizeof(u.firstname));
+				strlcpy(u.lastname, safejsonstr(p[1]),
+				    sizeof(u.lastname));
+				strlcpy(u.username, safejsonstr(p[2]),
+				    sizeof(u.username));
 				cvector_push_back(ids, u);
 				goto next;
 			}
@@ -100,8 +111,10 @@ finduser(SIA *sia, const char *name, FILE *out)
 
 	if (ids) {
 		for (k = 0; k < cvector_size(ids); ++k)
-			fprintf(out, "___%zu.___ *ID:* `%lld` (___%s___)\n",
-			    k + 1, ids[k].id, ids[k].name);
+			fprintf(out,
+			    "___%zu.___ *ID:* `%lld` (___%s %s %s___)\n", k + 1,
+			    ids[k].id, ids[k].firstname, ids[k].lastname,
+			    ids[k].username);
 		cvector_free(ids);
 		return 1;
 	}

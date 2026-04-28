@@ -252,6 +252,7 @@ usercallback(void *arg, struct aho_match_t *match)
 		dictitem *item = sia->database.idmap[match->id];
 
 		*ctx->utotweight += item->weight;
+		// printf("%s (%s)\n", item->word, item->category);
 
 		/* Проходимся по всему вектору <ustats>и ищем нашу категорию,
 		 * если найдена, увеличиваем вес.  */
