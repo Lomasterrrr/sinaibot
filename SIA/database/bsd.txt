@@ -1,0 +1,93 @@
+freebsd 1.0
+openbsd 1.0
+netbsd 1.0
+dragonflybsd 1.0
+dragonfly bsd 1.0
+фрибсд 1.0
+опенбсд 1.0
+нетбсд 1.0
+драгонфлайбсд 1.0
+freebsd-update 1.0
+bsdinstall 1.0
+bsdconfig 1.0
+poudriere 1.0
+пудриер 0.9
+пудриере 0.9
+пудриера 0.9
+pkg-ng 1.0
+portsnap 1.0
+buildworld 1.0
+buildkernel 1.0
+installworld 1.0
+make buildworld 1.0
+make buildkernel 1.0
+mergemaster 1.0
+etcupdate 1.0
+bhyve 1.0
+nullfs 1.0
+pfctl 1.0
+kldload 1.0
+kldstat 1.0
+kldunload 1.0
+freebsd jail 1.0
+vimage 1.0
+vnet 0.9
+capsicum 0.9
+фрибсд 1.0
+фрибзд 0.9
+фрибсде 0.9
+фрибсду 0.9
+фрибсдом 0.9
+опенбсд 1.0
+опенбсде 0.9
+нетбсд 1.0
+нетбсде 0.9
+бхайв 0.9
+бхайве 0.9
+бхайвом 0.9
+джейл 0.7
+джейлы 0.8
+джейле 0.7
+джейлов 0.8
+джейлом 0.7
+джейлах 0.7
+pkg install 0.9
+pkg delete 0.9
+pkg upgrade 0.9
+pkg_add 0.9
+pkg_delete 0.9
+pkg_info 0.9
+/usr/ports 0.9
+ports collection 0.9
+ports коллекция 0.9
+дерево портов 0.9
+портов дерево 0.9
+порты bsd 0.9
+freebsd handbook 0.9
+хэндбук фрибсд 0.9
+хендбук фрибсд 0.9
+rc.conf 0.9
+loader.conf 0.9
+/etc/rc.conf 0.9
+make.conf 0.8
+src.conf 0.8
+syspatch 1.0
+securelevel 0.9
+geom 0.7
+ufs 0.6
+ffs 0.5
+kld 0.7
+kldmod 0.8
+dtrace bsd 0.9
+mac framework 0.7
+bsd лицензия 0.6
+bsd license 0.6
+бсд лицензия 0.6
+бсд система 0.7
+bsd система 0.7
+бсд 0.5
+bsd 0.5
+jail 0.4
+jails 0.5
+пакеты bsd 0.7
+sysctl 0.5

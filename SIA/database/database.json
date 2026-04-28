@@ -7,5 +7,18 @@
   {"file": "macos.txt", "category": "macos"},
   {"file": "nixos.txt", "category": "nixos"},
   {"file": "rust.txt", "category": "rust"},
-  {"file": "wayland.txt", "category": "wayland"}
+  {"file": "wayland.txt", "category": "wayland"},
+  {"file": "c++.txt", "category": "c++"},
+  {"file": "go.txt", "category": "go"},
+  {"file": "nvidia.txt", "category": "nvidia"},
+  {"file": "amd.txt", "category": "amd"},
+  {"file": "intel.txt", "category": "intel"},
+  {"file": "c.txt", "category": "c"},
+  {"file": "gnu.txt", "category": "gnu"},
+  {"file": "emacs.txt", "category": "emacs"},
+  {"file": "vi.txt", "category": "vi"},
+  {"file": "archlinux.txt", "category": "archlinux"},
+  {"file": "gentoo.txt", "category": "gentoo"},
+  {"file": "unix.txt", "category": "unix"},
+  {"file": "bsd.txt", "category": "bsd"}
 ]

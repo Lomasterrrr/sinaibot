@@ -201,7 +201,7 @@ msgsproc(SIA *sia, long long int userid, time_t x, time_t y, size_t *totmsgs,
 			continue;
 		if (json_object_object_get_ex(j, "message", &m) &&
 		    json_object_object_get_ex(m, "text", &t) &&
-		    json_object_get_type(t) == json_type_string) {
+		    json_object_is_type(t, json_type_string)) {
 			++(*totmsgs);
 			*currmsg = *totmsgs;
 			textproc(sia, json_object_get_string(t), callback, arg);
@@ -474,13 +474,8 @@ topuserscallback(void *arg, struct aho_match_t *match)
 		usertopstat *ustat = NULL;
 		HASH_FIND(hh, r->utopstats, &r->curruserid,
 		    sizeof(r->curruserid), ustat);
-		if (!ustat) {
-			if ((ustat = calloc(1, sizeof(usertopstat)))) {
-				ustat->id = r->curruserid;
-				HASH_ADD(hh, r->utopstats, id,
-				    sizeof(long long int), ustat);
-			}
-		}
+		if (!ustat)
+			return;
 
 		/* Общий вес всех категорий.  */
 		ustat->totweight += item->weight;
@@ -488,6 +483,8 @@ topuserscallback(void *arg, struct aho_match_t *match)
 		if (strcmp(item->category, r->category) == 0) {
 			/* Увеличиваем вес.  */
 			ustat->weight += item->weight;
+
+			printf("%s (%s)\n", item->word, item->category);
 
 			if (ustat->lastmsg != r->currmsg) {
 				/* Нашли новое сообщение, в котором
@@ -513,10 +510,10 @@ msgsproctop(report1 *r, time_t x, time_t y, void *callback)
 			continue;
 		if (json_object_object_get_ex(j, "message", &m) &&
 		    json_object_object_get_ex(m, "text", &t) &&
-		    json_object_get_type(t) == json_type_string &&
+		    json_object_is_type(t, json_type_string) &&
 		    json_object_object_get_ex(m, "from", &f) &&
 		    json_object_object_get_ex(f, "id", &i) &&
-		    json_object_get_type(i) == json_type_int) {
+		    json_object_is_type(i, json_type_int)) {
 			long long int id = json_object_get_int64(i);
 			usertopstat *ustat = NULL;
 

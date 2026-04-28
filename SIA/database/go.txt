@@ -1,0 +1,139 @@
+на go 1.0
+типа go 0.8
+типа го 0.7
+на го 0.7
+в го 0.7
+в go 0.7
+у go 1.0
+у го 0.7
+как го 0.9
+как go 0.9
+golang 1.0
+голанг 1.0
+голанга 1.0
+голангу 1.0
+голангом 1.0
+голанге 1.0
+gopher 0.4
+гофер 0.5
+гофера 0.5
+гоферу 0.5
+гофером 0.5
+гофере 0.5
+гоферы 0.5
+гоферов 0.5
+гоферами 0.5
+гоферах 0.5
+гошник 0.8
+гошника 0.8
+гошнику 0.8
+гошником 0.8
+гошнике 0.8
+гошники 0.8
+гошников 0.8
+гошниками 0.8
+go-разработчик 1.0
+golang-разработчик 1.0
+go-девелопер 1.0
+goroutine 1.0
+горутина 1.0
+горутины 1.0
+горутине 1.0
+горутину 1.0
+горутиной 1.0
+горутинах 1.0
+горутинами 1.0
+sync.waitgroup 1.0
+waitgroup 0.8
+вейтгруппа 0.8
+вейтгруппой 0.8
+sync.mutex 0.9
+sync.rwmutex 0.9
+sync.map 0.9
+sync.pool 0.9
+sync.once 0.9
+context.context 1.0
+context.background 1.0
+context.todo 1.0
+context.withcancel 1.0
+context.withtimeout 1.0
+context.withdeadline 1.0
+context.withvalue 1.0
+golang 1.0
+голанг 1.0
+голанга 1.0
+голангу 1.0
+голангом 1.0
+голанге 1.0
+gopher 0.4
+гофер 0.5
+гофера 0.5
+гоферу 0.5
+гофером 0.5
+гофере 0.5
+гоферы 0.5
+гоферов 0.5
+гоферами 0.5
+гоферах 0.5
+гошник 0.8
+гошника 0.8
+гошнику 0.8
+гошником 0.8
+гошнике 0.8
+гошники 0.8
+гошников 0.8
+гошниками 0.8
+go-разработчик 1.0
+golang-разработчик 1.0
+go-девелопер 1.0
+goroutine 1.0
+горутина 1.0
+горутины 1.0
+горутине 1.0
+горутину 1.0
+горутиной 1.0
+горутинах 1.0
+горутинами 1.0
+sync.waitgroup 1.0
+waitgroup 0.8
+вейтгруппа 0.8
+вейтгруппой 0.8
+sync.mutex 0.9
+sync.rwmutex 0.9
+sync.map 0.9
+sync.pool 0.9
+sync.once 0.9
+context.context 1.0
+context.background 1.0
+context.todo 1.0
+context.withcancel 1.0
+context.withtimeout 1.0
+context.withdeadline 1.0
+context.withvalue 1.0
+<-chan 1.0
+chan<- 1.0
+go-каналы 0.9
+каналы в go 0.9
+interface{} 0.9
+go func() 1.0
+gofmt 1.0
+go vet 1.0
+go mod 0.9
+go mod tidy 1.0
+go mod vendor 1.0
+go mod init 1.0
+go build 0.8
+go run 0.6
+go test 0.6
+go generate 0.8
+go work 0.8
+go.mod 1.0
+go.sum 1.0
+go.work 1.0
+gopath 1.0
+go 1. 1.0
+gofiber 1.0
+goroot 1.0
+горут 0.8
+горутом 0.8
+горута 0.8

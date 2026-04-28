@@ -111,7 +111,7 @@ getdatabaseinfo(struct json_object **json, const char *database)
 	free(filestr);
 	if (!*json)
 		return 0;
-	if (json_object_get_type(*json) != json_type_array) {
+	if (!json_object_is_type(*json, json_type_array)) {
 		json_object_put(*json);
 		return 0;
 	}

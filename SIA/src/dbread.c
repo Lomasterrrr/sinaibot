@@ -77,7 +77,7 @@ dbgetnamebyid(SIA *sia, long long int userid)
 					if (!(json_object_object_get_ex(f,
 						"last_name", &n)))
 						goto exit;
-			if (json_object_get_type(n) != json_type_string)
+			if (!json_object_is_type(n, json_type_string))
 				goto exit;
 			strlcpy(res, json_object_get_string(n), sizeof(res));
 		}
