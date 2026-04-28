@@ -32,6 +32,8 @@ parserange(const char *range, time_t *x, time_t *y)
 		range += 4;
 		if (!strcmp(range, "hour"))
 			*x = t - 3600;
+		else if (!strcmp(range, "3hours"))
+			*x = t - (3600 * 3);
 		else if (!strcmp(range, "day"))
 			*x = t - 86400;
 		else if (!strcmp(range, "3days"))
@@ -112,19 +114,22 @@ SIAREPORT(SIA *sia, FILE *out, const char *type, char **args, size_t numargs)
 		if (errno != 0 || *str)
 			return 0;
 
-		str = joinargs(args + 2, numargs - 2);
+		if (!(str = joinargs(args + 2, numargs - 2)))
+			return 0;
 		if (!parserange(str, &x, &y)) {
 			free(str);
 			return 0;
 		}
 		free(str);
 
-		return tags(sia, n, userid, x, y, out);
+		tags(sia, n, userid, x, y, out);
+		return 1;
 	} else if (!strcmp(type, "finduser")) {
 		if (!*args)
 			return 0;
 
-		return finduser(sia, *args, out);
+		finduser(sia, *args, out);
+		return 1;
 	} else if (!strcmp(type, "toptag")) {
 		time_t x, y;
 		char *str;
@@ -137,16 +142,17 @@ SIAREPORT(SIA *sia, FILE *out, const char *type, char **args, size_t numargs)
 		if (errno != 0 || *str)
 			return 0;
 
-		str = joinargs(args + 2, numargs - 2);
+		if (!(str = joinargs(args + 2, numargs - 2)))
+			return 0;
 		if (!parserange(str, &x, &y)) {
 			free(str);
 			return 0;
 		}
 		free(str);
 
-		return toptag(sia, args[0], n, x, y, out);
+		toptag(sia, args[0], n, x, y, out);
+		return 1;
 	}
 
-	fprintf(out, "Unknown type!\n");
 	return 0;
 }

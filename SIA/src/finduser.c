@@ -36,7 +36,7 @@ safejsonstr(struct json_object *j)
 	return "—";
 }
 
-bool
+void
 finduser(SIA *sia, const char *name, FILE *out)
 {
 	utf8proc_uint8_t *norm;
@@ -62,11 +62,11 @@ finduser(SIA *sia, const char *name, FILE *out)
 	utf8proc_map((const utf8proc_uint8_t *)name, 0, &norm,
 	    UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
 	if (!norm)
-		return 0;
+		return;
 
 	if (!(stmt = dbreadopen(sia, 0, 0, time(NULL)))) {
 		free(norm);
-		return 0;
+		return;
 	}
 	while ((json = dbreadnext(stmt))) {
 		struct json_object *j, *m, *f, *i, *p[3] = { 0 };
@@ -116,9 +116,8 @@ finduser(SIA *sia, const char *name, FILE *out)
 			    ids[k].id, ids[k].firstname, ids[k].lastname,
 			    ids[k].username);
 		cvector_free(ids);
-		return 1;
+		return;
 	}
 
 	fprintf(out, "*Not found ID for \"%s\"*\n", name);
-	return 0;
 }

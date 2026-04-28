@@ -30,6 +30,7 @@ SIA *SIAOPEN(const char *filename, const char *database);
 bool SIAUPDATE(SIA *sia, const char *json);
 bool SIAREPORT(SIA *sia, FILE *out, const char *type, char **args,
     size_t numargs);
+void SIACATEGORIESLIST(SIA *sia, FILE *out);
 SIA *SIACLOSE(SIA *sia);
 
 #endif

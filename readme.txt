@@ -287,9 +287,18 @@
 
 				 Тип		Аргументы
 				--------------------------
-				 <finduser>	<имя>
-				 <tags>		<id> <количество> <дипазон времени>
-				 <toptags>	<id> <количество> <дипазон времени>
+				 <tags>		<id пользователя> <число> <период>
+				 <toptags>	<категория> <число> <период>
+				 <finduser>	<текст>
+
+				<категория>:
+					См. SIA/database/database.json
+
+				<период>:
+					(a) all time
+					(b) last <hour|3 hours|day|3 days|week|mouth|year>
+					(c) Y-m-d [H:M] ; now
+					(d) Y-m-d [H:M] ; Y-m-d [H:M]
 
 	ЗАХОД НОВОГО УЧАСТНИКА
 

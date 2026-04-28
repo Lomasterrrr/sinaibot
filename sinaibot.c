@@ -2504,22 +2504,54 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 		if (msg->from->id != ADMINID && !issenator(msg->from->id))
 			return botmsg(handle, msg->chat->id, 0,
 			    "Только администратор или сенатор может использовать разведку!");
-		type = strtok(NULL, " ");
-		if (!type)
-			return botmsg(handle, msg->chat->id, 0,
-			    "Не найден тип отчета!");
+		if (!(type = strtok(NULL, " ")))
+			goto SIAUSAGE;
 		while ((p = strtok(NULL, " ")) && n < 512)
 			args[n++] = p;
+		if (n == 0)
+			goto SIAUSAGE;
 
 		/* Запись из файлового потока в буфер.  */
 		char report[65535] = { 0 };
 		FILE *stream = fmemopen(report, sizeof(report) - 1, "w");
 		if (stream) {
 			/* Выполняем запрос.  */
-			SIAREPORT(sia, stream, type, args, n);
-			fflush(stream);
-			botmsg(handle, msg->chat->id, 0, report);
+			if (SIAREPORT(sia, stream, type, args, n)) {
+				fflush(stream);
+				botmsg(handle, msg->chat->id, msg->message_id,
+				    report);
+				fclose(stream);
+				return;
+			}
 			fclose(stream);
+
+		SIAUSAGE:
+			memset(report, 0, sizeof(report));
+			if ((stream = fmemopen(report, sizeof(report) - 1,
+				 "w"))) {
+				SIACATEGORIESLIST(sia, stream);
+				fclose(stream);
+			} else
+				*report = 0;
+
+			botmsg(handle, msg->chat->id, msg->message_id,
+			    "*Используйте:*\n"
+			    "  /SIA tags ___<id пользователя> <число> <период>___\n"
+			    "  /SIA toptag ___<категория> <число> <период>___\n"
+			    "  /SIA finduser ___<текст>___\n"
+			    "\n*Формат <категория>:*\n"
+			    "%s\n"
+			    "\n*Формат <период>:*\n"
+			    "  (a) ___all time___\n"
+			    "  (b) ___last <hour|3 hours|day|3 days|week|mouth|year>___\n"
+			    "  (c) ___Y-m-d [H:M]___ ; now\n"
+			    "  (d) ___Y-m-d [H:M] ; Y-m-d [H:M]___\n"
+			    "\n*Например:*\n"
+			    "  /SIA finduser ___lom___\n"
+			    "  /SIA tags ___5004184307 15 all time___\n"
+			    "  /SIA toptag ___rust 10 last 3 days___\n"
+			    "  /SIA toptag ___c++ 10 2007-03-04 15:44 ; now___\n",
+			    report);
 		}
 
 		return;

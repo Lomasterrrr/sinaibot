@@ -127,7 +127,7 @@ typedef struct {
 	SIA *sia;
 } report1;
 
-static inline bool
+static inline void
 reportfree(report *r)
 {
 	if (r) {
@@ -142,10 +142,9 @@ reportfree(report *r)
 		if (r->ustats)
 			cvector_free(r->ustats);
 	}
-	return 0;
 }
 
-static inline bool
+static inline void
 report1free(report1 *r1)
 {
 	if (r1) {
@@ -168,7 +167,6 @@ report1free(report1 *r1)
 		if (r1->utopstatsvalid)
 			cvector_free(r1->utopstatsvalid);
 	}
-	return 0;
 }
 
 static inline void
@@ -407,7 +405,7 @@ cmprelevance(const void *a, const void *b)
 	return 0;
 }
 
-bool
+void
 tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y, FILE *out)
 {
 	assert(sia);
@@ -415,8 +413,7 @@ tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y, FILE *out)
 	assert(out);
 
 	report r = { 0 }; /* Сам наш report.  */
-	REPORTINIT(sia, userid, x, y, out);
-	r.sia = sia; /* Наш указатель на SIA.  */
+	r.sia = sia;	  /* Наш указатель на SIA.  */
 
 	/* Нам понадобиться следующее: (a) общее число сообщений
 	 * вообще, для каждой категории: (b) кол. сообщений в
@@ -445,6 +442,8 @@ tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y, FILE *out)
 
 	/* Выводим нашу статистику после расчета.  */
 	if (!cvector_empty(r.ustats)) {
+		fprintf(out, "*Top categories for user\n >>>* %s\n\n",
+		    dbgetnamebyid(sia, userid));
 		qsort(r.ustats, cvector_size(r.ustats), sizeof(userstat),
 		    cmprelevance);
 		for (size_t i = 0; i < cvector_size(r.ustats) && n--; ++i) {
@@ -452,12 +451,10 @@ tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y, FILE *out)
 			fprintf(out, "___%zu.___ *%s —* %0.1f points\n", i + 1,
 			    s->category, s->relevance);
 		}
-		fputc('\n', out);
 	}
-	fprintf(out, "*Total messages:* %zu\n", r.utotmsgs);
 
-	reportfree(&r);
-	return 1;
+	REPORTINIT(sia, userid, x, y, out);
+	return reportfree(&r);
 }
 
 static inline void
@@ -484,7 +481,7 @@ topuserscallback(void *arg, struct aho_match_t *match)
 			/* Увеличиваем вес.  */
 			ustat->weight += item->weight;
 
-			printf("%s (%s)\n", item->word, item->category);
+			// printf("%s (%s)\n", item->word, item->category);
 
 			if (ustat->lastmsg != r->currmsg) {
 				/* Нашли новое сообщение, в котором
@@ -582,7 +579,7 @@ cmpusertopstat(const void *a, const void *b)
 	return 0;
 }
 
-bool
+void
 toptag(SIA *sia, const char *category, size_t n, time_t x, time_t y, FILE *out)
 {
 	assert(sia);
@@ -591,8 +588,7 @@ toptag(SIA *sia, const char *category, size_t n, time_t x, time_t y, FILE *out)
 	assert(category);
 
 	report1 r1 = { 0 }; /* Сам наш report.  */
-	REPORTINIT(sia, 0LL, x, y, out);
-	r1.sia = sia; /* Наш указатель на SIA.  */
+	r1.sia = sia;	    /* Наш указатель на SIA.  */
 
 	/* Наша категория для топа.  */
 	strlcpy(r1.category, category, sizeof(r1.category));
@@ -617,6 +613,8 @@ toptag(SIA *sia, const char *category, size_t n, time_t x, time_t y, FILE *out)
 	if (!cvector_empty(r1.utopstatsvalid)) {
 		qsort(r1.utopstatsvalid, cvector_size(r1.utopstatsvalid),
 		    sizeof(usertopstat *), cmpusertopstat);
+		fprintf(out, "*Top users in category\n >>>* %s\n", r1.category);
+		fputc('\n', out);
 		for (size_t i = 0; i < cvector_size(r1.utopstatsvalid) && n--;
 		    ++i)
 			fprintf(out,
@@ -624,10 +622,8 @@ toptag(SIA *sia, const char *category, size_t n, time_t x, time_t y, FILE *out)
 			    i + 1, r1.utopstatsvalid[i]->id,
 			    dbgetnamebyid(sia, r1.utopstatsvalid[i]->id),
 			    r1.utopstatsvalid[i]->relevance);
-		fprintf(out, "\n*Top users in category:* %s\n", r1.category);
 	}
-	fprintf(out, "*Total messages:* %zu\n", r1.gtotmsgs);
 
-	report1free(&r1);
-	return 1;
+	REPORTINIT(sia, 0LL, x, y, out);
+	return report1free(&r1);
 }
