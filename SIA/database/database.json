@@ -1,0 +1,11 @@
+[
+  {"file": "femboy.txt", "category": "фембой"},
+  {"file": "badwords.txt", "category": "плохие-слова"},
+  {"file": "lomaster.txt", "category": "ktotonokto"},
+  {"file": "suicide.txt", "category": "суицид"},
+  {"file": "zov.txt", "category": "сво"},
+  {"file": "macos.txt", "category": "macos"},
+  {"file": "nixos.txt", "category": "nixos"},
+  {"file": "rust.txt", "category": "rust"},
+  {"file": "wayland.txt", "category": "wayland"}
+]

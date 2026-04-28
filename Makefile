@@ -1,30 +1,40 @@
-# by nakidai
-CF = clang-format19
-CFLAGS += -Itelebot/include
-CFLAGS += -Wall -g -O1 -fPIC
+# by nakidai (and lomaster)
+
+CFLAGS += -Itelebot-stripped/include
+CFLAGS += -ISIA
+CFLAGS += -Wall -fPIC -g -O1
 CFLAGS.jsonc != pkg-config --cflags json-c
 CFLAGS += ${CFLAGS.jsonc}
+CFLAGS.sqlite3 != pkg-config --cflags sqlite3
+CFLAGS += ${CFLAGS.sqlite3}
 
-LDFLAGS += -Ltelebot
-LDFLAGS += -Wl,-rpath=telebot
-LDLIBS += -l:libtelebot.so
+LDFLAGS += -Ltelebot-stripped
+LDFLAGS += -Wl,-rpath=telebot-stripped
+LDFLAGS += -LSIA
+LDLIBS += -ltelebot
+LDLIBS += -lsia
+LDLIBS += -lm
 LDLIBS.jsonc != pkg-config --libs json-c
 LDLIBS += ${LDLIBS.jsonc}
+LDLIBS.sqlite3 != pkg-config --libs sqlite3
+LDLIBS += ${LDLIBS.sqlite3}
 
 all: sinaibot
 
-.PHONY: telebot format
-telebot/libtelebot.so:
-	make -C telebot
+telebot-stripped/libtelebot.so:
+	$(MAKE) -C telebot-stripped
 
-format:
-	@find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.hpp' \) -print0 | xargs -0 ${CF} -i || true
+SIA/libsia.a:
+	$(MAKE) -C SIA
 
-sinaibot.c: cvector.h telebot/libtelebot.so
+sinaibot.o: sinaibot.c cvector.h
 
-sinaibot: sinaibot.o
-	${CC} -o sinaibot ${LDFLAGS} sinaibot.o ${LDLIBS}
+sinaibot: sinaibot.o telebot-stripped/libtelebot.so SIA/libsia.a
+	${CC} -o $@ sinaibot.o ${LDFLAGS} ${LDLIBS}
 
 clean:
 	rm -f sinaibot.o sinaibot
-	make -C telebot clean
+	$(MAKE) -C telebot-stripped clean
+	$(MAKE) -C SIA clean
+
+.PHONY: all clean

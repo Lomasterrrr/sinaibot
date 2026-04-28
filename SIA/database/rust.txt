@@ -1,0 +1,139 @@
+#[derive 1.0
+#[no_std] 1.0
+#[tokio::main] 1.0
+'static 0.9
+actix 0.9
+anyhow 0.9
+arc< 0.8
+as mutable 0.7
+as_mut 0.7
+as_ref 0.7
+async-std 1.0
+axum 0.9
+blazingly fast 0.8
+borrow check 0.8
+borrow checker 1.0
+borrowing 0.6
+box::new 0.8
+cannot borrow 0.8
+cargo 0.8
+cargo-audit 1.0
+cargo-edit 1.0
+cargo-expand 1.0
+cargo.lock 1.0
+cargo.toml 1.0
+clippy 0.9
+cow<'a, 1.0
+crate 0.5
+crates.io 1.0
+dereferencing 0.5
+derive 0.6
+diesel orm 1.0
+does not live long enough 1.0
+enum 0.3
+error[e0 0.9
+expect() 0.6
+fd-find 0.8
+fearless concurrency 1.0
+ferris 0.9
+generics 0.4
+help: consider 0.6
+hyper 0.7
+impl 0.6
+into() 0.5
+lifetime 0.7
+lifetimes 0.9
+macro_rules! 1.0
+match arm 0.8
+memory safety 0.8
+mismatched types 0.6
+move semantics 0.9
+moved here 0.8
+mutex 0.4
+nightly rust 1.0
+nom 0.7
+option 0.4
+ownership 0.7
+pattern matching 0.5
+phantomdata 1.0
+pin< 0.8
+proc-macro 1.0
+ratatui 1.0
+raw pointers 0.7
+rc< 0.7
+reqwest 0.9
+rewrite it in rust 1.0
+riir 1.0
+ripgrep 0.9
+rocket framework 1.0
+rust 0.8
+rust-analyzer 1.0
+rust-lang 1.0
+rust-toolchain 1.0
+rustacean 1.0
+rustaceans 1.0
+rustc 1.0
+rustfmt 1.0
+rustlang 1.0
+rustup 1.0
+rwlock 0.6
+serde 1.0
+sqlx 0.9
+stable rust 1.0
+struct 0.3
+thiserror 1.0
+to_owned 0.8
+tokio 0.9
+toolchain 0.5
+trait 0.6
+turbofish 1.0
+undefined behavior 0.5
+unpin 0.9
+unsafe 0.6
+unwrap 0.7
+zero-cost 0.7
+zero-cost abstractions 1.0
+аксум 0.9
+актикс 0.9
+анврап 0.8
+ансейф 0.7
+бесстрашная конкурентность 1.0
+блазинголи фаст 0.9
+борроу чекер 1.0
+борроучекер 1.0
+владение и заимствование 1.0
+деривайв 0.7
+дженерики 0.5
+карго 0.8
+клиппи 0.8
+краб 0.4
+крабик 0.5
+крайт 0.7
+крейт 0.7
+лайфтайм 0.8
+лайфтаймы 0.9
+мув-семантика 0.9
+овнершип 0.8
+памятебезопасность 0.9
+паттерн матчинг 0.6
+переписали на расте 1.0
+переписать на раст 1.0
+прок-макросы 1.0
+раст 0.7
+раст-комьюнити 1.0
+раста 0.7
+растациан 1.0
+расте 0.7
+растец 0.8
+растишка 0.5
+растом 0.7
+расту 0.7
+рст 0.4
+серде 0.9
+сырые указатели 0.7
+типаж 0.6
+токио 0.7
+трейт 0.7
+тулчейн 0.6
+турбофиш 1.0
+феррис 0.9

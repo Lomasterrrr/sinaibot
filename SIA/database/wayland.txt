@@ -1,0 +1,417 @@
+GDK_BACKEND wayland 1.0
+MOZ_ENABLE_WAYLAND 1.0
+QT wayland 0.85
+QT_QPA_PLATFORM wayland 1.0
+QT_QPA_PLATFORM=wayland 1.0
+WAYLAND_DISPLAY 1.0
+XDG_SESSION_TYPE wayland 1.0
+Xorg удалили 0.8
+adaptive sync wayland 0.75
+ags wayland 0.8
+application launcher wayland 0.75
+bemenu 0.8
+black screen wayland 0.85
+broke under wayland 0.85
+broken on wayland 0.9
+cage 0.7
+chromium wayland 0.85
+cliphist 0.8
+color picker wayland 0.75
+cursor invisible wayland 0.8
+dbus wayland 0.75
+discord screenshare wayland 0.9
+discord wayland 0.85
+dmenu wayland 0.75
+dnd wayland 0.7
+does not support wayland 0.85
+dotool wayland 0.7
+dropped x11 support 0.9
+dunst wayland 0.75
+dwl 0.8
+dynamic tiling wayland 0.75
+electron ozone 0.8
+electron wayland 0.85
+enable wayland 0.8
+enlightenment wayland 0.75
+eww wayland 0.8
+fcitx5 wayland 0.8
+finally on wayland 0.85
+firefox on wayland 0.9
+firefox wayland 0.9
+force enable wayland 0.8
+force wayland 0.8
+foreign toplevel 0.75
+fractional scale 0.8
+fuzzel 0.85
+gamescope 0.75
+gamescope wayland 0.8
+gammastep 0.8
+gammastep wayland 0.8
+gnome wayland 0.9
+gpu screen recorder wayland 0.8
+grim 0.85
+grim slurp 0.9
+grimshot 0.85
+gtk wayland 0.85
+gtklock 0.75
+hypr 0.85
+hyprcursor 0.8
+hypridle 0.8
+hyprland 1.0
+hyprland animations 0.8
+hyprland blur 0.8
+hyprland compositor 1.0
+hyprland config 0.9
+hyprland rounded corners 0.75
+hyprland tiling 0.85
+hyprland workspace 0.85
+hyprland.conf 0.9
+hyprlock 0.85
+hyprpaper 0.85
+hyprpicker 0.8
+hyprshot 0.85
+hyprsunset 0.8
+i3 but wayland 0.85
+ibus wayland 0.75
+idle inhibitor wayland 0.75
+idle timeout wayland 0.75
+inner gaps hyprland 0.7
+input lag wayland 0.75
+kanshi 0.8
+kde wayland 0.9
+keybind wayland 0.7
+kooha 0.8
+kooha recorder 0.8
+kwin wayland 0.9
+labwc 0.85
+layer shell 0.8
+libinput wayland 0.75
+libwayland 0.85
+lockscreen wayland 0.75
+mako 0.8
+manual tiling wayland 0.7
+mpvpaper 0.8
+mutter wayland 0.85
+native wayland support 0.9
+no wayland support 0.85
+no xwayland 0.85
+not wayland ready 0.85
+notification wayland 0.75
+nwg displays 0.75
+obs pipewire 0.8
+obs wayland 0.85
+obs на вейланде 0.85
+outer gaps sway 0.7
+ozone wayland 0.9
+pipewire capture 0.8
+pipewire screen cast 0.85
+pipewire screen share 0.75
+pipewire wayland 0.85
+plasma wayland 0.9
+pure wayland 0.9
+pw capture 0.75
+rdp wayland 0.75
+redshift wayland 0.75
+river 0.8
+riverwm 0.85
+rofi wayland 0.8
+running wayland 1.0
+screen capture wayland 0.8
+screen share wayland 0.8
+screencopy 0.8
+screensharing on wayland 0.85
+sdl wayland 0.75
+sdl2 wayland 0.75
+slack wayland 0.75
+slurp 0.8
+stable protocol 0.7
+swappy 0.75
+sway 0.95
+sway compositor 1.0
+sway config file 0.8
+sway tiling 0.85
+sway workspace 0.85
+swaybar 0.85
+swaybg 0.85
+swayconfig 0.85
+swayidle 0.85
+swayidle timeout 0.8
+swaylock 0.9
+swaync 0.85
+swaywm 1.0
+switched to wayland 0.9
+swww 0.85
+teams wayland 0.75
+tearing wayland fix 0.75
+telegram wayland 0.75
+tiling wayland 0.75
+tofi 0.8
+touchpad gestures wayland 0.75
+unstable protocol 0.7
+use wayland 1.0
+virtual keyboard wayland 0.7
+vrr wayland 0.75
+vulkan wayland 0.75
+waybar 0.9
+wayfarer recorder 0.7
+wayfire 0.95
+wayfire blur 0.75
+wayfire config 0.8
+wayland 1.0
+wayland animations 0.75
+wayland backend 0.9
+wayland background 0.75
+wayland blur 0.75
+wayland bug 0.8
+wayland capture 0.75
+wayland client 0.85
+wayland clipboard 0.8
+wayland color picker 0.75
+wayland compositor 1.0
+wayland compositor protocol 0.75
+wayland compositor tiling 0.75
+wayland convert 0.75
+wayland cursor 0.75
+wayland daily driver 0.9
+wayland dbus 0.75
+wayland display server 0.95
+wayland display variable 0.75
+wayland dpms 0.75
+wayland drag and drop 0.75
+wayland enabled 0.8
+wayland env 0.8
+wayland environment 0.8
+wayland event viewer 0.7
+wayland extension 0.75
+wayland finally works 0.85
+wayland flag 0.75
+wayland focus stealing 0.7
+wayland fractional scaling 0.85
+wayland freeze 0.8
+wayland gaming 0.75
+wayland gamma 0.75
+wayland gaps 0.75
+wayland gestures 0.75
+wayland hotkeys 0.7
+wayland ime 0.75
+wayland incompatible 0.8
+wayland input method 0.7
+wayland input seat 0.7
+wayland issues 0.85
+wayland keybinding 0.75
+wayland launcher 0.75
+wayland layer 0.75
+wayland mature 0.75
+wayland monitor off 0.75
+wayland monitor setup 0.75
+wayland multimonitor 0.75
+wayland native 0.9
+wayland native app 0.85
+wayland night mode 0.75
+wayland no cursor 0.8
+wayland only 0.85
+wayland only app 0.85
+wayland opacity 0.7
+wayland pen 0.7
+wayland production 0.8
+wayland protocol 0.9
+wayland quirks 0.75
+wayland rdp freerdp 0.75
+wayland ready 0.8
+wayland regression 0.8
+wayland remote desktop 0.75
+wayland rounded corners 0.75
+wayland screen recording 0.8
+wayland screenshot 0.8
+wayland seat 0.75
+wayland server 0.85
+wayland session 0.95
+wayland shortcuts 0.7
+wayland socket 0.85
+wayland tablet 0.75
+wayland tearing 0.75
+wayland toolkit 0.75
+wayland touch 0.7
+wayland transparency 0.7
+wayland unstable 0.7
+wayland usable now 0.85
+wayland vnc 0.75
+wayland wallpaper 0.8
+wayland weird 0.7
+wayland workaround 0.85
+wayland workspaces 0.8
+wayland xdg 0.75
+wayland без xwayland 0.85
+wayland гик 0.75
+wayland готов 0.75
+wayland готов к работе 0.8
+wayland евангелист 0.7
+wayland задрот 0.7
+wayland костыли 0.8
+wayland курсор исчез 0.8
+wayland лагает 0.8
+wayland мигрант 0.75
+wayland наконец стабилен 0.8
+wayland основная система 0.8
+wayland патч 0.75
+wayland повседневно 0.75
+wayland поддержка 0.8
+wayland проблемы 0.85
+wayland пропагандист 0.7
+wayland ранний адопter 0.7
+wayland расширение 0.75
+wayland рулит 0.8
+wayland сломал 0.8
+wayland стабильный 0.75
+wayland уговорил 0.7
+wayland хак 0.8
+wayland черный экран 0.85
+wayland-ification 0.85
+waylandification 0.85
+waylandize 0.7
+waylandовик 0.9
+waylandовый 0.9
+waylock 0.75
+wayshot 0.8
+wayvnc 0.85
+wayvnc сервер 0.85
+weston 0.85
+weston compositor 0.9
+wev 0.75
+wf recorder 0.85
+wf-recorder 0.85
+wine wayland 0.8
+wine на вейланде 0.8
+wl clipboard 0.9
+wl compositor 0.9
+wl copy 0.85
+wl display 0.75
+wl output 0.75
+wl paste 0.85
+wl registry 0.7
+wl seat 0.75
+wl surface 0.75
+wleird 0.7
+wlogout 0.8
+wlr 0.75
+wlr based 0.85
+wlr compositor 0.85
+wlr foreign toplevel 0.75
+wlr gamma control 0.7
+wlr idle 0.75
+wlr layer shell 0.8
+wlr output management 0.8
+wlr output power 0.7
+wlr protocols 0.8
+wlr randr 0.85
+wlr screencopy 0.85
+wlr virtual pointer 0.7
+wlroots 0.95
+wlroots compositor 0.9
+wlweird 0.75
+wofi 0.85
+wofi launcher 0.85
+wtype 0.8
+x11 deprecated upstream 0.85
+x11 legacy 0.75
+x11 мертв 0.8
+xcursor wayland 0.75
+xdg activation 0.75
+xdg desktop portal 0.85
+xdg output 0.75
+xdg portal 0.8
+xdg portal screencopy 0.8
+xdg remote desktop 0.75
+xless 0.75
+xorg deprecated 0.75
+xorg removal 0.85
+xorg умер 0.8
+xwayland 0.95
+xwayland compatibility 0.8
+xwayland disabled 0.85
+xwayland fallback 0.85
+xwayland video bridge 0.8
+xwayland видео бридж 0.75
+xwayland не нужен 0.85
+xwayland отключил 0.8
+ydotool 0.75
+zoom wayland 0.8
+баг вейланд 0.8
+без xorg 0.85
+без иксов 0.85
+вейланд 1.0
+вейланд в продакшене 0.85
+вейланд велосипеды 0.75
+вейланд запись 0.8
+вейланд кайф 0.8
+вейланд лучше иксов 0.9
+вейланд победил 0.8
+вейланд рулит 0.8
+вейланд сессия 0.9
+вейланд сломал приложение 0.85
+вейланд стабилен 0.75
+вейланд стал юзабельным 0.85
+вейланд странный 0.7
+вейланд топ 0.8
+вейландер 0.8
+вейландист 0.75
+вейландификация 0.9
+вейландовый 0.85
+вейландщик 0.85
+всем советую вейланд 0.8
+втащил вейланд 0.8
+выпилили x11 0.85
+дейли драйвер вейланд 0.85
+дескриншарить вейланд 0.75
+дискорд вейланд 0.85
+дискорд на вейланде 0.9
+дискорд шаринг вейланд 0.9
+добавили вейланд 0.8
+дропнули иксы 0.85
+зависает вейланд 0.8
+задержка ввода вейланд 0.75
+запись экрана вейланд 0.8
+запустил вейланд 0.85
+затащил вейланд 0.75
+зрелый вейланд 0.75
+зум вейланд 0.8
+иксы мертвы 0.8
+иксы уже не нужны 0.85
+курсор пропал вейланд 0.8
+на вейланде 1.0
+на вейланде не работает 0.9
+нативный вейланд 0.9
+не работает на вейланде 0.9
+не совместимо с вейландом 0.85
+невидимый курсор вейланд 0.8
+нет поддержки вейланда 0.85
+обои вейланд 0.8
+основной вейланд 0.8
+отказались от x11 0.85
+отказался от xorg 0.8
+отключил xwayland 0.85
+перевел на вейланд 0.85
+перевёл на вейланд 0.85
+перейти с иксов 0.85
+пересел на вейланд 0.9
+перешел на вейланд 0.9
+перешёл на вейланд 0.9
+портировал под вейланд 0.85
+портировали на вейланд 0.85
+прификсил под вейланд 0.8
+ранний адоптер вейланд 0.75
+рекомендую вейланд 0.75
+сессия вейланд 0.9
+сижу на вейланде 1.0
+скриншаринг вейланд 0.8
+сломалось в вейланде 0.85
+телега на вейланде 0.8
+убил иксы 0.75
+уйти с x11 0.8
+форс вейланд 0.8
+форсировать вейланд 0.75
+фризы вейланд 0.8
+черный экран вейланд 0.85
+чистый вейланд 0.9
+шаринг вейланд 0.8
+шарить экран вейланд 0.8

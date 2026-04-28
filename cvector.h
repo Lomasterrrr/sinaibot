@@ -1,42 +1,3 @@
-#include "holystd.h"
-#ifndef CVECTOR_UTILS_H_
-#define CVECTOR_UTILS_H_
-/**
- * @copyright Copyright (c) 2022 Evan Teran,
- * License: The MIT License (MIT)
- * @brief extends the cvector library
- * @file cvector_utils.h
- */
-
-/**
- * @brief cvector_for_each_in - for header to iterate over vector each element's
- * address
- * @param it - iterator of type pointer to vector element
- * @param vec - the vector
- * @return U0
- */
-#define cvector_for_each_in(it, vec) \
-	for (it = cvector_begin(vec); it < cvector_end(vec); it++)
-
-/**
- * @brief cvector_for_each - call function func on each element of the vector
- * @param vec - the vector
- * @param func - function to be called on each element that takes each element
- * as argument
- * @return U0
- */
-#define cvector_for_each(vec, func)                               \
-	do {                                                      \
-		if ((vec) && (func) != NULL) {                    \
-			USZ i;                                    \
-			for (i = 0; i < cvector_size(vec); i++) { \
-				func((vec)[i]);                   \
-			}                                         \
-		}                                                 \
-	} while (0)
-
-#endif /* CVECTOR_UTILS_H_ */
-
 #ifndef CVECTOR_H_
 #define CVECTOR_H_
 /**
@@ -87,19 +48,19 @@
 
 /* NOTE: Similar to C's qsort and bsearch, you will receive a T*
  * for a vector of Ts. This means that you cannot use `free` directly
- * as a destructor. Instead if you have for example a cvector_vector_type(I32 *)
- * you will need to supply a function which casts `elem_ptr` to an `I32**`
+ * as a destructor. Instead if you have for example a cvector_vector_type(int *)
+ * you will need to supply a function which casts `elem_ptr` to an `int**`
  * and then does a free on what that pointer points to:
  *
  * ex:
  *
- * U0 free_I32(U0 *p) { free(*(I32 **)p); }
+ * void free_int(void *p) { free(*(int **)p); }
  */
-typedef U0 (*cvector_elem_destructor_t)(U0 *elem_ptr);
+typedef void (*cvector_elem_destructor_t)(void *elem_ptr);
 
 typedef struct cvector_metadata_t {
-	USZ size;
-	USZ capacity;
+	size_t size;
+	size_t capacity;
 	cvector_elem_destructor_t elem_destructor;
 } cvector_metadata_t;
 
@@ -128,7 +89,7 @@ typedef struct cvector_metadata_t {
  * @return the metadata pointer of the vector
  * @internal
  */
-#define cvector_vec_to_base(vec) (&((cvector_metadata_t *)(U0 *)(vec))[-1])
+#define cvector_vec_to_base(vec) (&((cvector_metadata_t *)(void *)(vec))[-1])
 
 /**
  * @brief cvector_base_to_vec - For internal use, converts a metadata pointer to
@@ -137,22 +98,22 @@ typedef struct cvector_metadata_t {
  * @return the vector
  * @internal
  */
-#define cvector_base_to_vec(ptr) ((U0 *)&((cvector_metadata_t *)(ptr))[1])
+#define cvector_base_to_vec(ptr) ((void *)&((cvector_metadata_t *)(ptr))[1])
 
 /**
  * @brief cvector_capacity - gets the current capacity of the vector
  * @param vec - the vector
- * @return the capacity as a USZ
+ * @return the capacity as a size_t
  */
 #define cvector_capacity(vec) \
-	((vec) ? cvector_vec_to_base(vec)->capacity : (USZ)0)
+	((vec) ? cvector_vec_to_base(vec)->capacity : (size_t)0)
 
 /**
  * @brief cvector_size - gets the current size of the vector
  * @param vec - the vector
- * @return the size as a USZ
+ * @return the size as a size_t
  */
-#define cvector_size(vec) ((vec) ? cvector_vec_to_base(vec)->size : (USZ)0)
+#define cvector_size(vec) ((vec) ? cvector_vec_to_base(vec)->size : (size_t)0)
 
 /**
  * @brief cvector_elem_destructor - get the element destructor function used
@@ -177,14 +138,14 @@ typedef struct cvector_metadata_t {
  * capacity to n (or greater).
  * @param vec - the vector
  * @param n - Minimum capacity for the vector.
- * @return U0
+ * @return void
  */
-#define cvector_reserve(vec, n)                               \
-	do {                                                  \
-		USZ cv_reserve_cap__ = cvector_capacity(vec); \
-		if (cv_reserve_cap__ < (n)) {                 \
-			cvector_grow((vec), (n));             \
-		}                                             \
+#define cvector_reserve(vec, n)                                  \
+	do {                                                     \
+		size_t cv_reserve_cap__ = cvector_capacity(vec); \
+		if (cv_reserve_cap__ < (n)) {                    \
+			cvector_grow((vec), (n));                \
+		}                                                \
 	} while (0)
 
 /**
@@ -193,7 +154,7 @@ typedef struct cvector_metadata_t {
  * @param vec - the vector
  * @param capacity - vector capacity to reserve
  * @param elem_destructor_fn - element destructor function
- * @return U0
+ * @return void
  */
 #define cvector_init(vec, capacity, elem_destructor_fn)    \
 	do {                                               \
@@ -208,12 +169,12 @@ typedef struct cvector_metadata_t {
  * @brief cvector_erase - removes the element at index i from the vector
  * @param vec - the vector
  * @param i - index of element to remove
- * @return U0
+ * @return void
  */
 #define cvector_erase(vec, i)                                               \
 	do {                                                                \
 		if (vec) {                                                  \
-			const USZ cv_erase_sz__ = cvector_size(vec);        \
+			const size_t cv_erase_sz__ = cvector_size(vec);     \
 			if ((i) < cv_erase_sz__) {                          \
 				cvector_elem_destructor_t                   \
 				    cv_erase_elem_dtor__ =                  \
@@ -233,7 +194,7 @@ typedef struct cvector_metadata_t {
 /**
  * @brief cvector_clear - erase all of the elements in the vector
  * @param vec - the vector
- * @return U0
+ * @return void
  */
 #define cvector_clear(vec)                                               \
 	do {                                                             \
@@ -241,7 +202,7 @@ typedef struct cvector_metadata_t {
 			cvector_elem_destructor_t cv_clear_elem_dtor__ = \
 			    cvector_elem_destructor(vec);                \
 			if (cv_clear_elem_dtor__) {                      \
-				USZ cv_clear_i__;                        \
+				size_t cv_clear_i__;                     \
 				for (cv_clear_i__ = 0;                   \
 				    cv_clear_i__ < cvector_size(vec);    \
 				    ++cv_clear_i__) {                    \
@@ -256,16 +217,16 @@ typedef struct cvector_metadata_t {
 /**
  * @brief cvector_free - frees all memory associated with the vector
  * @param vec - the vector
- * @return U0
+ * @return void
  */
 #define cvector_free(vec)                                               \
 	do {                                                            \
 		if (vec) {                                              \
-			U0 *cv_free_p__ = cvector_vec_to_base(vec);     \
+			void *cv_free_p__ = cvector_vec_to_base(vec);   \
 			cvector_elem_destructor_t cv_free_elem_dtor__ = \
 			    cvector_elem_destructor(vec);               \
 			if (cv_free_elem_dtor__) {                      \
-				USZ cv_free_i__;                        \
+				size_t cv_free_i__;                     \
 				for (cv_free_i__ = 0;                   \
 				    cv_free_i__ < cvector_size(vec);    \
 				    ++cv_free_i__) {                    \
@@ -319,11 +280,11 @@ typedef struct cvector_metadata_t {
  * @brief cvector_push_back - adds an element to the end of the vector
  * @param vec - the vector
  * @param value - the value to add
- * @return U0
+ * @return void
  */
 #define cvector_push_back(vec, value)                                       \
 	do {                                                                \
-		USZ cv_push_back_cap__ = cvector_capacity(vec);             \
+		size_t cv_push_back_cap__ = cvector_capacity(vec);          \
 		if (cv_push_back_cap__ <= cvector_size(vec)) {              \
 			cvector_grow((vec),                                 \
 			    cvector_compute_next_grow(cv_push_back_cap__)); \
@@ -337,11 +298,11 @@ typedef struct cvector_metadata_t {
  * @param vec - the vector
  * @param pos - position in the vector where the new elements are inserted.
  * @param val - value to be copied (or moved) to the inserted elements.
- * @return U0
+ * @return void
  */
 #define cvector_insert(vec, pos, val)                                          \
 	do {                                                                   \
-		USZ cv_insert_cap__ = cvector_capacity(vec);                   \
+		size_t cv_insert_cap__ = cvector_capacity(vec);                \
 		if (cv_insert_cap__ <= cvector_size(vec)) {                    \
 			cvector_grow((vec),                                    \
 			    cvector_compute_next_grow(cv_insert_cap__));       \
@@ -357,7 +318,7 @@ typedef struct cvector_metadata_t {
 /**
  * @brief cvector_pop_back - removes the last element from the vector
  * @param vec - the vector
- * @return U0
+ * @return void
  */
 #define cvector_pop_back(vec)                                       \
 	do {                                                        \
@@ -374,7 +335,7 @@ typedef struct cvector_metadata_t {
  * @brief cvector_copy - copy a vector
  * @param from - the original vector
  * @param to - destination to which the function copy to
- * @return U0
+ * @return void
  */
 #define cvector_copy(from, to)                                     \
 	do {                                                       \
@@ -392,7 +353,7 @@ typedef struct cvector_metadata_t {
  * @param vec - the original vector
  * @param other - the other vector to swap content with
  * @param type - the type of both vectors
- * @return U0
+ * @return void
  */
 #define cvector_swap(vec, other, type)                             \
 	do {                                                       \
@@ -408,7 +369,7 @@ typedef struct cvector_metadata_t {
  * the vector
  * @param vec - the vector
  * @param size - the new capacity to set
- * @return U0
+ * @return void
  * @internal
  */
 #define cvector_set_capacity(vec, size)                              \
@@ -423,7 +384,7 @@ typedef struct cvector_metadata_t {
  * vector
  * @param vec - the vector
  * @param _size - the new capacity to set
- * @return U0
+ * @return void
  * @internal
  */
 #define cvector_set_size(vec, _size)                              \
@@ -440,7 +401,7 @@ typedef struct cvector_metadata_t {
  * @param vec - the vector
  * @param elem_destructor_fn - function pointer of type
  * cvector_elem_destructor_t used to destroy elements
- * @return U0
+ * @return void
  */
 #define cvector_set_elem_destructor(vec, elem_destructor_fn)        \
 	do {                                                        \
@@ -455,41 +416,42 @@ typedef struct cvector_metadata_t {
  * `count` elements big
  * @param vec - the vector
  * @param count - the new capacity to set
- * @return U0
+ * @return void
  * @internal
  */
-#define cvector_grow(vec, count)                                              \
-	do {                                                                  \
-		const USZ cv_grow_sz__ = (count) * sizeof(*(vec)) +           \
-		    sizeof(cvector_metadata_t);                               \
-		if (vec) {                                                    \
-			U0 *cv_grow_p1__ = cvector_vec_to_base(vec);          \
-			U0 *cv_grow_p2__ = cvector_clib_realloc(cv_grow_p1__, \
-			    cv_grow_sz__);                                    \
-			cvector_clib_assert(cv_grow_p2__);                    \
-			(vec) = cvector_base_to_vec(cv_grow_p2__);            \
-		} else {                                                      \
-			U0 *cv_grow_p__ = cvector_clib_malloc(cv_grow_sz__);  \
-			cvector_clib_assert(cv_grow_p__);                     \
-			(vec) = cvector_base_to_vec(cv_grow_p__);             \
-			cvector_set_size((vec), 0);                           \
-			cvector_set_elem_destructor((vec), NULL);             \
-		}                                                             \
-		cvector_set_capacity((vec), (count));                         \
+#define cvector_grow(vec, count)                                               \
+	do {                                                                   \
+		const size_t cv_grow_sz__ = (count) * sizeof(*(vec)) +         \
+		    sizeof(cvector_metadata_t);                                \
+		if (vec) {                                                     \
+			void *cv_grow_p1__ = cvector_vec_to_base(vec);         \
+			void *cv_grow_p2__ =                                   \
+			    cvector_clib_realloc(cv_grow_p1__, cv_grow_sz__);  \
+			cvector_clib_assert(cv_grow_p2__);                     \
+			(vec) = cvector_base_to_vec(cv_grow_p2__);             \
+		} else {                                                       \
+			void *cv_grow_p__ = cvector_clib_malloc(cv_grow_sz__); \
+			cvector_clib_assert(cv_grow_p__);                      \
+			(vec) = cvector_base_to_vec(cv_grow_p__);              \
+			cvector_set_size((vec), 0);                            \
+			cvector_set_elem_destructor((vec), NULL);              \
+		}                                                              \
+		cvector_set_capacity((vec), (count));                          \
 	} while (0)
 
 /**
  * @brief cvector_shrink_to_fit - requests the container to reduce its capacity
  * to fit its size
  * @param vec - the vector
- * @return U0
+ * @return void
  */
-#define cvector_shrink_to_fit(vec)                                           \
-	do {                                                                 \
-		if (vec) {                                                   \
-			const USZ cv_shrink_to_fit_sz__ = cvector_size(vec); \
-			cvector_grow(vec, cv_shrink_to_fit_sz__);            \
-		}                                                            \
+#define cvector_shrink_to_fit(vec)                                         \
+	do {                                                               \
+		if (vec) {                                                 \
+			const size_t cv_shrink_to_fit_sz__ = cvector_size( \
+			    vec);                                          \
+			cvector_grow(vec, cv_shrink_to_fit_sz__);          \
+		}                                                          \
 	} while (0)
 
 /**
@@ -499,10 +461,10 @@ typedef struct cvector_metadata_t {
  * @param n - position of an element in the vector.
  * @return the element at the specified position in the vector.
  */
-#define cvector_at(vec, n)                                          \
-	((vec) ? (((I32)(n) < 0 || (USZ)(n) >= cvector_size(vec)) ? \
-			 NULL :                                     \
-			 &(vec)[n]) :                               \
+#define cvector_at(vec, n)                                             \
+	((vec) ? (((int)(n) < 0 || (size_t)(n) >= cvector_size(vec)) ? \
+			 NULL :                                        \
+			 &(vec)[n]) :                                  \
 		 NULL)
 
 /**
@@ -529,29 +491,35 @@ typedef struct cvector_metadata_t {
 		 NULL)
 
 /**
+ * @brief cvector_data - returns a pointer to the memory used by the vector to
+ * store its elements.
+ * @param vec - the vector
+ * @return a pointer to the first element (or NULL)
+ */
+#define cvector_data(vec) cvector_begin(vec)
+
+/**
  * @brief cvector_resize - resizes the container to contain count elements.
  * @param vec - the vector
  * @param count - new size of the vector
  * @param value - the value to initialize new elements with
- * @return U0
+ * @return void
  */
-#define cvector_resize(vec, count, value)                                      \
-	do {                                                                   \
-		if (vec) {                                                     \
-			USZ cv_resize_count__ = (USZ)(count);                  \
-			USZ cv_resize_sz__ = cvector_vec_to_base(vec)->size;   \
-			if (cv_resize_count__ > cv_resize_sz__) {              \
-				cvector_reserve((vec), cv_resize_count__);     \
-				cvector_set_size((vec), cv_resize_count__);    \
-				do {                                           \
-					(vec)[cv_resize_sz__++] = (value);     \
-				} while (cv_resize_sz__ < cv_resize_count__);  \
-			} else {                                               \
-				while (cv_resize_count__ < cv_resize_sz__--) { \
-					cvector_pop_back(vec);                 \
-				}                                              \
-			}                                                      \
-		}                                                              \
+#define cvector_resize(vec, count, value)                              \
+	do {                                                           \
+		size_t cv_resize_count__ = (size_t)(count);            \
+		size_t cv_resize_sz__ = cvector_size(vec);             \
+		if (cv_resize_count__ > cv_resize_sz__) {              \
+			cvector_reserve((vec), cv_resize_count__);     \
+			cvector_set_size((vec), cv_resize_count__);    \
+			do {                                           \
+				(vec)[cv_resize_sz__++] = (value);     \
+			} while (cv_resize_sz__ < cv_resize_count__);  \
+		} else {                                               \
+			while (cv_resize_count__ < cv_resize_sz__--) { \
+				cvector_pop_back(vec);                 \
+			}                                              \
+		}                                                      \
 	} while (0)
 
 #endif /* CVECTOR_H_ */

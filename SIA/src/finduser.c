@@ -1,0 +1,111 @@
+#include "reports.h"
+
+static inline bool
+ismatch(struct json_object *j, const utf8proc_uint8_t *nname)
+{
+	utf8proc_uint8_t *norm;
+	bool match = 0;
+
+	if (!j || !nname)
+		return 0;
+	if (json_object_get_type(j) != json_type_string)
+		return 0;
+	utf8proc_map((const utf8proc_uint8_t *)json_object_get_string(j), 0,
+	    &norm, UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
+	if (!norm)
+		return 0;
+
+	if (strstr((const char *)norm, (const char *)nname))
+		match = 1;
+
+	free(norm);
+	return match;
+}
+
+static inline const char *
+safejsonstr(struct json_object *j)
+{
+	if (j && json_object_get_type(j) == json_type_string)
+		return json_object_get_string(j);
+	return "—";
+}
+
+bool
+finduser(SIA *sia, const char *name, FILE *out)
+{
+	utf8proc_uint8_t *norm;
+	sqlite3_stmt *stmt;
+	const char *json;
+	size_t k;
+
+	typedef struct {
+		long long int id;
+		char name[512];
+	} user;
+	cvector(user) ids = NULL;
+
+	assert(name);
+	assert(out);
+	assert(sia);
+
+	if (*name == '@')
+		++name;
+
+	utf8proc_map((const utf8proc_uint8_t *)name, 0, &norm,
+	    UTF8PROC_NULLTERM | UTF8PROC_CASEFOLD);
+	if (!norm)
+		return 0;
+
+	if (!(stmt = dbreadopen(sia, 0, 0, time(NULL)))) {
+		free(norm);
+		return 0;
+	}
+	while ((json = dbreadnext(stmt))) {
+		struct json_object *j, *m, *f, *i, *p[3] = { 0 };
+		if (!(j = json_tokener_parse(json)))
+			continue;
+
+		if (!json_object_object_get_ex(j, "message", &m) ||
+		    !json_object_object_get_ex(m, "from", &f) ||
+		    !json_object_object_get_ex(f, "id", &i) ||
+		    json_object_get_type(i) != json_type_int)
+			goto next;
+
+		int64_t id = json_object_get_int64(i);
+		for (k = 0; k < cvector_size(ids); ++k)
+			if (id == ids[k].id)
+				goto next;
+
+		json_object_object_get_ex(f, "first_name", &p[0]);
+		json_object_object_get_ex(f, "last_name", &p[1]);
+		json_object_object_get_ex(f, "username", &p[2]);
+
+		for (k = 0; k < sizeof(p) / sizeof(*p); ++k) {
+			if (ismatch(p[k], norm)) {
+				user u = { .id = id };
+				snprintf(u.name, sizeof(u.name), "%s %s @%s",
+				    safejsonstr(p[0]), safejsonstr(p[1]),
+				    safejsonstr(p[2]));
+				cvector_push_back(ids, u);
+				goto next;
+			}
+		}
+
+	next:
+		json_object_put(j);
+	}
+
+	free(norm);
+	dbreadclose(stmt);
+
+	if (ids) {
+		for (k = 0; k < cvector_size(ids); ++k)
+			fprintf(out, "___%zu.___ *ID:* `%lld` (___%s___)\n",
+			    k + 1, ids[k].id, ids[k].name);
+		cvector_free(ids);
+		return 1;
+	}
+
+	fprintf(out, "*Not found ID for \"%s\"*\n", name);
+	return 0;
+}
