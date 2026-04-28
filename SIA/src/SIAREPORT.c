@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "../include/sia.h"
 #include "reports.h"
 
@@ -143,5 +145,6 @@ SIAREPORT(SIA *sia, FILE *out, const char *type, char **args, size_t numargs)
 		return toptag(sia, args[0], n, x, y, out);
 	}
 
+	fprintf(out, "Unknown type!\n");
 	return 0;
 }

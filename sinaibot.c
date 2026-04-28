@@ -2512,7 +2512,7 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 			args[n++] = p;
 
 		/* Запись из файлового потока в буфер.  */
-		char report[MAXMSGLEN];
+		char report[65535];
 		FILE *stream = fmemopen(report, sizeof(report), "w");
 		if (stream) {
 			/* Выполняем запрос.  */

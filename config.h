@@ -6,7 +6,8 @@
 #define CHATID		  2084477597
 #define INTERFACE	  NULL /* any if NULL */
 #define PROXYADDR	  NULL
-#define PROXYAUTH	  NULL
+// #define PROXYADDR	  "socks5h://127.0.0.1:10808"
+#define PROXYAUTH NULL
 
 typedef struct {
 	const char *name; /* Любая пометка.  */
