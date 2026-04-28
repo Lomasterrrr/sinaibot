@@ -1,9 +1,10 @@
 #include "../include/sia.h"
+#include "json-c/json_object.h"
 
 bool
 SIAUPDATE(SIA *sia, const char *json)
 {
-	struct json_object *j, *m, *d, *f, *i;
+	struct json_object *j, *m, *d, *f, *i, *t;
 	sqlite3_stmt *stmt;
 	time_t tstamp = time(NULL);
 	long long int userid = 0;
@@ -16,12 +17,23 @@ SIAUPDATE(SIA *sia, const char *json)
 	 * там не найдены, то id будет 0, а unixtime на
 	 * момент записи в базу данных.  */
 	if ((j = json_tokener_parse(json))) {
-		if (json_object_object_get_ex(j, "message", &m))
-			if (json_object_object_get_ex(m, "date", &d))
+		if (json_object_object_get_ex(j, "message", &m)) {
+			if (json_object_object_get_ex(m, "date", &d) &&
+			    json_object_is_type(d, json_type_int))
 				tstamp = json_object_get_int64(d);
-		if (json_object_object_get_ex(m, "from", &f))
-			if (json_object_object_get_ex(f, "id", &i))
-				userid = json_object_get_int64(i);
+			if (json_object_object_get_ex(m, "from", &f))
+				if (json_object_object_get_ex(f, "id", &i) &&
+				    json_object_is_type(i, json_type_int))
+					userid = json_object_get_int64(i);
+			if (json_object_object_get_ex(m, "text", &t) &&
+			    json_object_is_type(t, json_type_string)) {
+				if (strncmp(json_object_get_string(t), "/SIA",
+					4) == 0) {
+					json_object_put(j);
+					return 1;
+				}
+			}
+		}
 		json_object_put(j);
 	}
 
