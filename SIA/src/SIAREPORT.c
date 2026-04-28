@@ -115,8 +115,10 @@ SIAREPORT(SIA *sia, FILE *out, const char *type, char **args, size_t numargs)
 			return 0;
 
 		str = joinargs(args + 2, numargs - 2);
-		if (!parserange(str, &x, &y))
+		if (!parserange(str, &x, &y)) {
+			free(str);
 			return 0;
+		}
 		free(str);
 
 		return tags(sia, n, userid, x, y, out);
@@ -138,8 +140,10 @@ SIAREPORT(SIA *sia, FILE *out, const char *type, char **args, size_t numargs)
 			return 0;
 
 		str = joinargs(args + 2, numargs - 2);
-		if (!parserange(str, &x, &y))
+		if (!parserange(str, &x, &y)) {
+			free(str);
 			return 0;
+		}
 		free(str);
 
 		return toptag(sia, args[0], n, x, y, out);
