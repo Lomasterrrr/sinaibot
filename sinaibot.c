@@ -2512,12 +2512,13 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 			args[n++] = p;
 
 		/* Запись из файлового потока в буфер.  */
-		char report[65535];
-		FILE *stream = fmemopen(report, sizeof(report), "w");
+		char report[65535] = { 0 };
+		FILE *stream = fmemopen(report, sizeof(report) - 1, "w");
 		if (stream) {
 			/* Выполняем запрос.  */
 			SIAREPORT(sia, stream, type, args, n);
-			botmsg(handle, chatid, msg->chat->id, report);
+			fflush(stream);
+			botmsg(handle, msg->chat->id, 0, report);
 			fclose(stream);
 		}
 
