@@ -20,5 +20,6 @@
   {"file": "archlinux.txt", "category": "archlinux"},
   {"file": "gentoo.txt", "category": "gentoo"},
   {"file": "unix.txt", "category": "unix"},
+  {"file": "usa.txt", "category": "usa"},
   {"file": "bsd.txt", "category": "bsd"}
 ]
