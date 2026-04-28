@@ -2497,7 +2497,7 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 		if (!strcmp(cmd, "hug"))
 			return loveact(handle, msg, (*buf) ? buf : NULL,
 			    "обнимает");
-	} else if (cmpstrs(cmd, "report", "sia", NULL)) {
+	} else if (!strcmp(cmd, "SIA")) {
 		char *args[512] = { 0 }, *type, *p;
 		size_t n = 0;
 
