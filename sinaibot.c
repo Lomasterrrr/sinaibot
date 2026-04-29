@@ -2515,25 +2515,27 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 		char *report = NULL;
 		size_t len = 0;
 		FILE *stream = open_memstream(&report, &len);
-		if (stream && report) {
+		if (stream) {
 			/* Выполняем запрос.  */
 			if (SIAREPORT(sia, stream, type, args, n)) {
 				fflush(stream);
 				botmsg(handle, msg->chat->id, msg->message_id,
 				    report);
 				fclose(stream);
-				free(report);
+				if (report)
+					free(report);
 				return;
 			}
 			fclose(stream);
-			free(report);
+			if (report)
+				free(report);
 
 		SIAUSAGE:
 			if ((stream = open_memstream(&report, &len))) {
 				SIACATEGORIESLIST(sia, stream);
 				fclose(stream);
 			} else
-				report = "";
+				report = NULL;
 
 			botmsg(handle, msg->chat->id, msg->message_id,
 			    "*Используйте:*\n"
@@ -2554,7 +2556,8 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 			    "  /SIA toptag ___c++ 10 2007-03-04 15:44 ; now___\n",
 			    report);
 
-			free(report);
+			if (report)
+				free(report);
 		}
 
 		return;
