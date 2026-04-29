@@ -50,11 +50,52 @@ dbreadclose(sqlite3_stmt *stmt)
 		sqlite3_finalize(stmt);
 }
 
+void
+getnamefromjson(struct json_object *from, char *buf, size_t buflen)
+{
+	/* Любой ценой получаем имя.  */
+	struct json_object *n1, *n2, *n3;
+	char *cp = buf;
+
+	*buf = 0;
+	if (!json_object_object_get_ex(from, "first_name", &n1) ||
+	    !json_object_is_type(n1, json_type_string))
+		n1 = NULL;
+	if (!json_object_object_get_ex(from, "last_name", &n2) ||
+	    !json_object_is_type(n2, json_type_string))
+		n2 = NULL;
+	if (!json_object_object_get_ex(from, "username", &n3) ||
+	    !json_object_is_type(n3, json_type_string))
+		n3 = NULL;
+
+	if (n1 && n2)
+		snprintf(buf, buflen, "%s %s", json_object_get_string(n1),
+		    json_object_get_string(n2));
+	else if (n1)
+		strlcpy(buf, json_object_get_string(n1), buflen);
+	else if (n2)
+		strlcpy(buf, json_object_get_string(n2), buflen);
+	else if (n3)
+		strlcpy(buf, json_object_get_string(n3), buflen);
+
+	while (*cp) {
+		switch (*cp) {
+		case '_':
+		case '*':
+		case '`':
+		case '|':
+			*cp = ' ';
+			break;
+		}
+		++cp;
+	}
+}
+
 const char *
 dbgetnamebyid(SIA *sia, long long int userid)
 {
 	struct json_object *j, *m, *f, *n;
-	static char res[512];
+	static char res[SIAMAXNAMELEN];
 	sqlite3_stmt *stmt;
 	const char *json;
 
@@ -70,27 +111,11 @@ dbgetnamebyid(SIA *sia, long long int userid)
 		goto exit;
 	if ((j = json_tokener_parse(json))) {
 		if (json_object_object_get_ex(j, "message", &m) &&
-		    json_object_object_get_ex(m, "from", &f)) {
-			if (!(json_object_object_get_ex(f, "first_name", &n)))
-				if (!(json_object_object_get_ex(f, "username",
-					&n)))
-					if (!(json_object_object_get_ex(f,
-						"last_name", &n)))
-						goto exit;
-			if (!json_object_is_type(n, json_type_string))
-				goto exit;
-			strlcpy(res, json_object_get_string(n), sizeof(res));
-		}
+		    json_object_object_get_ex(m, "from", &f))
+			getnamefromjson(f, res, sizeof(res));
 		json_object_put(j);
 	}
 	sqlite3_finalize(stmt);
-
-	char *cp = res;
-	while (*cp) {
-		if (*cp == '_')
-			*cp = ' ';
-		++cp;
-	}
 
 	return res;
 

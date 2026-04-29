@@ -1,3 +1,7 @@
+#include <stdio.h>
+#include <string.h>
+
+#include "json-c/json_object.h"
 #include "reports.h"
 
 /* Статистика для категории пользователя.  */
@@ -79,6 +83,9 @@ typedef struct {
 typedef struct {
 	/* ID пользователя (и ключ).  */
 	long long int id;
+
+	/* Имя юзера.  */
+	char name[SIAMAXNAMELEN];
 
 	/* Итоговая оценка.  */
 	double relevance;
@@ -405,6 +412,17 @@ cmprelevance(const void *a, const void *b)
 	return 0;
 }
 
+static inline void
+magnusprint(const char *s, FILE *out)
+{
+	while (*s) {
+		fputc(*s++, out);
+		while ((*s & 0xC0) == 0x80)
+			fputc(*s++, out);
+		fputc(' ', out);
+	}
+}
+
 void
 tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y, FILE *out)
 {
@@ -442,8 +460,9 @@ tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y, FILE *out)
 
 	/* Выводим нашу статистику после расчета.  */
 	if (!cvector_empty(r.ustats)) {
-		fprintf(out, "*Top categories for user\n >>>* %s\n\n",
-		    dbgetnamebyid(sia, userid));
+		fprintf(out, "Top categories for user\n\n*— ");
+		fprintf(out, "%s* (`%lld`)\n\n", dbgetnamebyid(sia, userid),
+		    userid);
 		qsort(r.ustats, cvector_size(r.ustats), sizeof(userstat),
 		    cmprelevance);
 		for (size_t i = 0; i < cvector_size(r.ustats) && n--; ++i) {
@@ -520,6 +539,9 @@ msgsproctop(report1 *r, time_t x, time_t y, void *callback)
 			if (!ustat) {
 				if ((ustat = calloc(1, sizeof(usertopstat)))) {
 					ustat->id = id;
+					getnamefromjson(f, ustat->name,
+					    sizeof(ustat->name));
+
 					HASH_ADD(hh, r->utopstats, id,
 					    sizeof(id), ustat);
 				}
@@ -613,14 +635,15 @@ toptag(SIA *sia, const char *category, size_t n, time_t x, time_t y, FILE *out)
 	if (!cvector_empty(r1.utopstatsvalid)) {
 		qsort(r1.utopstatsvalid, cvector_size(r1.utopstatsvalid),
 		    sizeof(usertopstat *), cmpusertopstat);
-		fprintf(out, "*Top users in category\n >>>* %s\n", r1.category);
-		fputc('\n', out);
+		fprintf(out, "Top users in category\n\n*— ");
+		magnusprint(r1.category, out);
+		fprintf(out, " —*\n\n");
 		for (size_t i = 0; i < cvector_size(r1.utopstatsvalid) && n--;
 		    ++i)
 			fprintf(out,
-			    "___%zu.___ ID: `%lld` (%s) —* %0.1f points*\n",
-			    i + 1, r1.utopstatsvalid[i]->id,
-			    dbgetnamebyid(sia, r1.utopstatsvalid[i]->id),
+			    "___%zu.___ %s (`%lld`) —* %0.1f points*\n", i + 1,
+			    r1.utopstatsvalid[i]->name,
+			    r1.utopstatsvalid[i]->id,
 			    r1.utopstatsvalid[i]->relevance);
 	}
 

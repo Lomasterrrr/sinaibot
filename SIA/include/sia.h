@@ -7,6 +7,7 @@
 #define SIAMAXCATEGORYLEN 128
 #define SIAMAXWORDLEN	  512
 #define SIAMAXRANGELEN	  1024
+#define SIAMAXNAMELEN	  1024
 
 typedef struct {
 	int64_t ahoid;

@@ -8,13 +8,7 @@
 		fputc('\n', out);                                        \
 		fprintf(out, "*Report type:* ___%s___\n", __FUNCTION__); \
 		fprintf(out, "*Date:* ___from %ld to %ld___\n", x, y);   \
-		fprintf(out, "*UserID:* ");                              \
-		if (userid != 0)                                         \
-			fprintf(out, "`%lld` (%s)\n", userid,            \
-			    dbgetnamebyid(sia, userid));                 \
-		else                                                     \
-			fprintf(out, "all users\n");                     \
-		fputs("___— Sinai Intelligence Agency___\n", out);       \
+		fputs("___Sinai Intelligence Agency___\n", out);         \
 	} while (0);
 
 void tags(SIA *sia, size_t n, long long int userid, time_t x, time_t y,
@@ -28,5 +22,6 @@ sqlite3_stmt *dbreadopen(SIA *sia, long long int userid, time_t x, time_t y);
 const char *dbreadnext(sqlite3_stmt *stmt);
 const char *dbgetnamebyid(SIA *sia, long long int userid);
 void dbreadclose(sqlite3_stmt *stmt);
+void getnamefromjson(struct json_object *from, char *buf, size_t buflen);
 
 #endif
