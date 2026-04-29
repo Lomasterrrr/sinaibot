@@ -2541,6 +2541,7 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 			    "*Используйте:*\n"
 			    "  /SIA tags ___<id пользователя> <число> <период>___\n"
 			    "  /SIA toptag ___<категория> <число> <период>___\n"
+			    "  /SIA toptags ___<число> <период>___\n"
 			    "  /SIA finduser ___<текст>___\n"
 			    "\n*Формат <категория>:*\n"
 			    "%s\n"
@@ -2553,7 +2554,7 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 			    "  /SIA finduser ___lom___\n"
 			    "  /SIA tags ___5004184307 15 all time___\n"
 			    "  /SIA toptag ___rust 10 last 3 days___\n"
-			    "  /SIA toptag ___c++ 10 2007-03-04 15:44 ; now___\n",
+			    "  /SIA toptags ___10 2007-03-04 15:44 ; now___\n",
 			    report);
 
 			if (report)

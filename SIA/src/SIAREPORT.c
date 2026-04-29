@@ -152,6 +152,28 @@ SIAREPORT(SIA *sia, FILE *out, const char *type, char **args, size_t numargs)
 
 		toptag(sia, args[0], n, x, y, out);
 		return 1;
+	} else if (!strcmp(type, "toptags")) {
+		time_t x, y;
+		char *str;
+		size_t n;
+
+		if (!args[0] || !args[1])
+			return 0;
+
+		n = strtoul(args[0], &str, 10);
+		if (errno != 0 || *str)
+			return 0;
+
+		if (!(str = joinargs(args + 1, numargs - 1)))
+			return 0;
+		if (!parserange(str, &x, &y)) {
+			free(str);
+			return 0;
+		}
+		free(str);
+
+		toptags(sia, n, x, y, out);
+		return 1;
 	}
 
 	return 0;

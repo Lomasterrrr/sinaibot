@@ -45,6 +45,9 @@ typedef struct {
 	 * встретилась <category>.  */
 	size_t n;
 
+	/* Общая оценка (только для report2)*/
+	double relevance;
+
 	size_t lastmsg;
 	UT_hash_handle hh;
 } globalstat;
@@ -134,6 +137,13 @@ typedef struct {
 	SIA *sia;
 } report1;
 
+typedef struct {
+	globalstat *gstats;
+	size_t gtotmsgs;
+	SIA *sia;
+	cvector(globalstat *) gstatsvalid;
+} report2;
+
 static inline void
 reportfree(report *r)
 {
@@ -173,6 +183,23 @@ report1free(report1 *r1)
 		}
 		if (r1->utopstatsvalid)
 			cvector_free(r1->utopstatsvalid);
+	}
+}
+
+static inline void
+report2free(report2 *r2)
+{
+	if (r2) {
+		if (r2->gstats) {
+			globalstat *c, *tmp;
+			HASH_ITER(hh, r2->gstats, c, tmp)
+			{
+				HASH_DEL(r2->gstats, c);
+				free(c);
+			}
+		}
+		if (r2->gstatsvalid)
+			cvector_free(r2->gstatsvalid);
 	}
 }
 
@@ -649,4 +676,83 @@ toptag(SIA *sia, const char *category, size_t n, time_t x, time_t y, FILE *out)
 
 	REPORTINIT(sia, 0LL, x, y, out);
 	return report1free(&r1);
+}
+
+static inline int
+cmpglobalstat(const void *a, const void *b)
+{
+	const globalstat *sa = *(const globalstat **)a;
+	const globalstat *sb = *(const globalstat **)b;
+
+	if (sa->relevance > sb->relevance)
+		return -1;
+	if (sa->relevance < sb->relevance)
+		return 1;
+
+	return 0;
+}
+
+static inline void
+report2calc(report2 *r2)
+{
+	gstatscalc(r2->gstats);
+
+	globalstat *c, *tmp;
+	HASH_ITER(hh, r2->gstats, c, tmp)
+	{
+		if (c->share <= 0.0)
+			continue;
+
+		double coverage = (r2->gtotmsgs > 0) ?
+		    ((double)c->n / r2->gtotmsgs) * 100.0 :
+		    0.0;
+
+		c->relevance = 0.0;
+		if (c->share + coverage > 0.0)
+			c->relevance = 2.0 * (c->share * coverage) /
+			    (c->share + coverage);
+
+		/* Надбавка за количество сообщений.  */
+		c->relevance *= log10(1.0 + (double)c->n);
+
+		cvector_push_back(r2->gstatsvalid, c);
+	}
+}
+
+void
+toptags(SIA *sia, size_t n, time_t x, time_t y, FILE *out)
+{
+	assert(sia);
+	assert(sia->session);
+	assert(out);
+
+	report2 r2 = { 0 }; /* Сам наш report.  */
+	r2.sia = sia;	    /* Наш указатель на SIA.  */
+
+	/* Получаем все то же самое как и выше.  */
+	globalcallbackctx gctx = { .sia = sia,
+		.gstats = &r2.gstats,
+		.currmsg = 0 };
+	if (!msgsproc(sia, 0, x, y, &r2.gtotmsgs, globalcallback, &gctx,
+		&gctx.currmsg))
+		return report2free(&r2);
+
+	/* Теперь расситываем это все.  */
+	report2calc(&r2);
+
+	/* Сортировка и вывод */
+	if (r2.gstatsvalid) {
+		qsort(r2.gstatsvalid, cvector_size(r2.gstatsvalid),
+		    sizeof(globalstat *), cmpglobalstat);
+		fprintf(out, "Top global categories\n\n");
+		for (size_t i = 0; i < cvector_size(r2.gstatsvalid) && n--;
+		    ++i) {
+			globalstat *s = r2.gstatsvalid[i];
+			fprintf(out, "___%zu.___ *%s* — %0.1f points\n", i + 1,
+			    s->category, s->relevance);
+		}
+	}
+
+	REPORTINIT(sia, 0LL, x, y, out);
+	return report2free(&r2);
 }
