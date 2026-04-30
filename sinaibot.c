@@ -2705,7 +2705,7 @@ main(void)
 	}
 
 	/* Получаем информацию о боте */
-	telebot_user_t me;
+	telebot_user_t me = { 0 };
 	if (telebot_get_me(handle, &me) != TELEBOT_ERROR_NONE) {
 		sinaibotlog(LOGERR, "Failed to get bot info");
 		sinaibotexit(0);
