@@ -680,7 +680,7 @@ femboyday(telebot_handler_t handle, telebot_message_t *msg)
 	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
 	    tm->tm_mon + 1, tm->tm_mday);
 
-	sscanf(buf, "%s %*ld %*lld %[^\n]", tmp, femboy);
+	sscanf(buf, "%s %*d %*d %[^\n]", tmp, femboy);
 	if (strncmp(tmp, date, 8) != 0) {
 		botmsg(handle, msg->chat->id, msg->message_id,
 		    "*👉👈 Фембой дня еще не определен!*");
@@ -1486,7 +1486,7 @@ dicktop(telebot_handler_t handle, telebot_message_t *msg, bool vagina)
 		return;
 
 	while (fgets(line, sizeof(line), fp)) {
-		if (sscanf(line, "%*lld %lld %*ld %*u %*u %*u %[^\n]", &len,
+		if (sscanf(line, "%*d %lld %*d %*d %*d %*d %[^\n]", &len,
 			name) != 2)
 			continue;
 		for (i = 0; i < 50; ++i) {
@@ -1845,7 +1845,7 @@ dicksend(telebot_handler_t handle, telebot_message_t *msg, char **args)
 
 	/* Провяем на ошибки, и парсим что нам нужно.  */
 	while (fgets(line, sizeof(line), fp)) {
-		if (sscanf(line, "%lld %lld %*ld %*u %*u %*u %[^\n]", &id, &len,
+		if (sscanf(line, "%lld %lld %*d %*d %*d %*d %[^\n]", &id, &len,
 			name) != 3)
 			continue;
 
@@ -1964,7 +1964,7 @@ dicksum(telebot_handler_t handle, telebot_message_t *msg)
 	/* Перебираем этот файл, и все длинны более
 	 * 0 добавляем к <sum>.  */
 	while (fgets(line, sizeof(line), fp)) {
-		if (sscanf(line, "%*lld %lld", &len) != 1)
+		if (sscanf(line, "%*d %lld", &len) != 1)
 			continue;
 		if (len > 0) {
 			if (sum + (__uint128_t)len < sum) {
@@ -2032,7 +2032,7 @@ dickreset(telebot_handler_t handle, telebot_message_t *msg)
 	 * все времена ставим в 0. Таким образом сбрасываем
 	 * все задержки.  */
 	while (fgets(line, sizeof(line), fp)) {
-		if (sscanf(line, "%lld %lld %*ld %u %u %u %[^\n]", &id, &len,
+		if (sscanf(line, "%lld %lld %*d %u %u %u %[^\n]", &id, &len,
 			&symbols[0], &symbols[1], &symbols[2], name) != 6)
 			continue;
 		fprintf(tmp, "%lld %lld 0 %u %u %u %s\n", id, len, symbols[0],
@@ -2474,7 +2474,7 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 
 	else if (!strcmp(cmd, "loveact") || !strcmp(cmd, "pat") ||
 	    !strcmp(cmd, "hug") || !strcmp(cmd, "tickle")) {
-		char buf[1024] = { 0 }, *name, *p;
+		char buf[1024] = { 0 }, *name = NULL, *p;
 		size_t off = 0;
 
 		if (!strcmp(cmd, "loveact"))

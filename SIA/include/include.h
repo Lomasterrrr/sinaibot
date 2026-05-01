@@ -1,6 +1,9 @@
 #ifndef SIA_INCLUDE_H
 #define SIA_INCLUDE_H
 
+#define _GNU_SOURCE   /* for asprintf() */
+#define _XOPEN_SOURCE /* for strptime() */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 

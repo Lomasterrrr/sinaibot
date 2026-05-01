@@ -50,8 +50,8 @@ parserange(const char *range, time_t *x, time_t *y)
 	}
 
 	/* В ином случае ожидаем диапазон.  */
-	if (!(p = strchr(range, ',')))
-		if (!(p = strchr(range, ';')))
+	if (!(p = (char *)strchr(range, ',')))
+		if (!(p = (char *)strchr(range, ';')))
 			return 0;
 	*p++ = 0;
 	if (!strcmp(p, "now")) {

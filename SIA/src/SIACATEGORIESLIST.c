@@ -17,7 +17,8 @@ SIACATEGORIESLIST(SIA *sia, FILE *out)
 		for (n = 0; n < cvector_size(categories); ++n)
 			if (!strcmp(categories[n], c->category))
 				goto next;
-		cvector_push_back(categories, strdup(c->category));
+		cvector_push_back(categories,
+		    strdup((const char *)c->category));
 	next:
 		continue;
 	}
