@@ -50,6 +50,7 @@
 #include "SIA/include/sia.h"
 #include "config.h"
 #include "cvector.h"
+#include "log.h"
 
 #define MAXLINELEN 1024
 #define MAXMSGLEN  4096
@@ -131,50 +132,6 @@ curtimestr(time_t tstamp)
 }
 
 /*
- *		S I N A I B O T L O G
- *
- * Сделана на основе err.h в bsd. Используется для откладочных
- * данных; Выводит все в stderr; сама ставит \n в конце;
- * принимает форматирование.
- */
-
-#define RED	"\e[1;31m"
-#define YELLOW	"\e[1;33m"
-#define MAGENTA "\e[1;35m"
-#define GREEN	"\e[1;32m"
-#define RESET	"\e[0m"
-
-typedef enum {
-	LOGOK = 1,
-	LOGWARN,
-	LOGERR,
-	LOGINFO,
-} logtype;
-
-static inline void
-sinaibotlog(logtype type, const char *fmt, ...)
-{
-	va_list ap;
-
-	assert(fmt);
-	assert(type >= LOGOK && type <= LOGINFO);
-
-	fprintf(stderr, "%s%s ",
-	    (type == LOGOK)	  ? GREEN :
-		(type == LOGWARN) ? YELLOW :
-		(type == LOGERR)  ? RED :
-		(type == LOGINFO) ? MAGENTA :
-				    "",
-	    curtimestr(0));
-
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-
-	fprintf(stderr, "%s\n", RESET);
-}
-
-/*
  *		W A I T M S
  *
  * Остнаваливает выполнение потока на указанное количество
@@ -213,8 +170,10 @@ bappendf(char *buf, size_t buflen, size_t *off, const char *fmt, ...)
 	ret = vsnprintf(buf + *off, rem, fmt, ap);
 	va_end(ap);
 
-	if (ret < 0 || (size_t)ret >= rem)
+	if (ret < 0 || (size_t)ret >= rem) {
+		log_error("Failed write in buffer");
 		return 0;
+	}
 
 	*off += ret;
 	return 1;
@@ -243,18 +202,18 @@ unumarg(const char *nptr, uint64_t min, uint64_t max, void *buf, size_t n)
 	while (isspace((uint8_t)*nptr))
 		nptr++;
 	if (*nptr == '-')
-		return 0;
+		goto err;
 
 	errno = 0;
 	val = strtoull(nptr, &endp, 10);
 	if (errno != 0 || endp == nptr)
-		return 0;
+		goto err;
 	while (isspace((uint8_t)*endp))
 		endp++;
 	if (*endp)
-		return 0;
+		goto err;
 	if (val < min || val > max)
-		return 0;
+		goto err;
 
 	switch (n) {
 	case sizeof(uint64_t):
@@ -270,10 +229,14 @@ unumarg(const char *nptr, uint64_t min, uint64_t max, void *buf, size_t n)
 		*(uint8_t *)buf = (uint8_t)val;
 		break;
 	default:
-		return 0;
+		goto err;
 	}
 
 	return 1;
+err:
+	log_error("Failed convert %s (max = %ld, min = %ld, n = %ld)", nptr,
+	    max, min, n);
+	return 0;
 }
 
 /*
@@ -322,10 +285,10 @@ botmsg(telebot_handler_t handle, long long int chatid, int replyid,
 		false, replyid, NULL) != TELEBOT_ERROR_NONE)
 		if (telebot_send_message(handle, chatid, message, NULL, false,
 			false, replyid, NULL) != TELEBOT_ERROR_NONE)
-			return sinaibotlog(LOGERR, "Failed send \"%s\"",
+			return log_error("Failed send \"%s\"",
 			    strfrag(message, 85));
 
-	return sinaibotlog(LOGOK, "Send \"%s\"", strfrag(message, 85));
+	return log_debug("Sent to %lld: \"%s\"", chatid, strfrag(message, 85));
 }
 
 /*
@@ -553,7 +516,7 @@ sinaibotexit(int sig)
 		SIACLOSE(sia);
 
 	fputc('\n', stderr);
-	sinaibotlog(LOGINFO, "Leave from sinaibot!");
+	log_info("Leave from sinaibot!");
 	exit(0);
 }
 
@@ -575,8 +538,10 @@ rawurandom(void)
 		n = getrandom(&val, sizeof(val), 0);
 	} while (n < 0 && errno == EINTR);
 
-	if (n != sizeof(val))
+	if (n != sizeof(val)) {
+		log_fatal("n != sizeof(val)");
 		abort(); /* --kernel */
+	}
 
 	return val;
 }
@@ -673,7 +638,7 @@ femboyday(telebot_handler_t handle, telebot_message_t *msg)
 	FILE *fp;
 
 	if (!(fp = fopen("data/femboy", "r+")))
-		return;
+		return log_error("Failed open data/femboy");
 	fgets(buf, sizeof(buf), fp);
 	fclose(fp);
 
@@ -712,7 +677,7 @@ femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
 
 	fclose(fopen("data/femboy", "a"));
 	if (!(fp = fopen("data/femboy", "r+")))
-		return;
+		return log_error("Failed open data/femboy");
 	fgets(buf, sizeof(buf), fp);
 	oldlen = ftell(fp);
 
@@ -1152,7 +1117,7 @@ amenl(telebot_handler_t handle, telebot_message_t *msg, char *ptr)
 		    (e + 1 - s));
 
 	if (!(fp = fopen("data/nz", "r")))
-		return;
+		return log_error("Failed open data/nz");
 
 	while (fgets(line, sizeof(line), fp)) {
 		snprintf(buf, sizeof(buf), "%s.%zu:%zu ", book, section, s);
@@ -1320,12 +1285,13 @@ penis(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "a+")))
-		return;
+		return log_error("Failed open data/penis");
 	rewind(fp);
 
 	/* Временный файл, на который мы потом
 	 * заменим файл с датой игры пенисов.  */
 	if (!(tmp = fopen("data/penis.tmp", "w"))) {
+		log_error("Failed open data/penis.tmp");
 		fclose(fp);
 		return;
 	}
@@ -1483,7 +1449,7 @@ dicktop(telebot_handler_t handle, telebot_message_t *msg, bool vagina)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "r")))
-		return;
+		return log_error("Failed open data/penis");
 
 	while (fgets(line, sizeof(line), fp)) {
 		if (sscanf(line, "%*d %lld %*d %*d %*d %*d %[^\n]", &len,
@@ -1569,11 +1535,12 @@ dickstyle(telebot_handler_t handle, telebot_message_t *msg, char **args)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "r")))
-		return;
+		return log_error("Failed open data/penis");
 
 	/* Временный файл, на который мы потом
 	 * заменим файл с датой игры пенисов.  */
 	if (!(tmp = fopen("data/penis.tmp", "w"))) {
+		log_error("Failed open data/penis.tmp");
 		fclose(fp);
 		return;
 	}
@@ -1682,7 +1649,7 @@ dickstat(telebot_handler_t handle, telebot_message_t *msg, char *arg)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "r")))
-		return;
+		return log_error("Failed open data/penis");
 
 	while (fgets(line, sizeof(line), fp)) {
 		if (sscanf(line, "%lld %lld %ld %u %u %u", &id, &len, &nxt,
@@ -1841,7 +1808,7 @@ dicksend(telebot_handler_t handle, telebot_message_t *msg, char **args)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "r")))
-		return;
+		return log_error("Failed open data/penis");
 
 	/* Провяем на ошибки, и парсим что нам нужно.  */
 	while (fgets(line, sizeof(line), fp)) {
@@ -1871,6 +1838,7 @@ dicksend(telebot_handler_t handle, telebot_message_t *msg, char **args)
 	/* Временный файл, на который мы потом
 	 * заменим файл с датой игры пенисов.  */
 	if (!(tmp = fopen("data/penis.tmp", "w"))) {
+		log_error("Failed open data/penis.tmp");
 		fclose(fp);
 		return;
 	}
@@ -1959,7 +1927,7 @@ dicksum(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "r")))
-		return;
+		return log_error("Failed open data/penis");
 
 	/* Перебираем этот файл, и все длинны более
 	 * 0 добавляем к <sum>.  */
@@ -2019,11 +1987,12 @@ dickreset(telebot_handler_t handle, telebot_message_t *msg)
 
 	/* Наш файл с датой игры пенисов.  */
 	if (!(fp = fopen("data/penis", "r")))
-		return;
+		return log_error("Failed open data/penis");
 
 	/* Временный файл, на который мы потом
 	 * заменим файл с датой игры пенисов.  */
 	if (!(tmp = fopen("data/penis.tmp", "w"))) {
+		log_error("Failed open data/penis.tmp");
 		fclose(fp);
 		return;
 	}
@@ -2113,8 +2082,9 @@ femboy(telebot_handler_t handle, telebot_message_t *msg, char *cmd)
 			continue;
 
 		if (!bappendf(speak, sizeof(speak), &off, "hewwo~ %s! 👉👈\n\n",
-			getnamefromuser(msg->from)))
+			getnamefromuser(msg->from))) {
 			return;
+		}
 
 		while (i--)
 			if (!bappendf(speak, sizeof(speak), &off, "%s ",
@@ -2588,7 +2558,7 @@ sinaibotproc(telebot_handler_t handle, telebot_update_t *update)
 	assert(update);
 
 	if (!SIAUPDATE(sia, update->response))
-		sinaibotlog(LOGWARN, "Failed write response in data.db (SIA)");
+		log_warn("Failed write response in data.db (SIA)");
 
 	if (update->update_type != TELEBOT_UPDATE_TYPE_MESSAGE)
 		return;
@@ -2620,7 +2590,7 @@ sinaibotproc(telebot_handler_t handle, telebot_update_t *update)
 				"data/hello.mp4", true, 0, 0, 0, NULL, NULL,
 				"Markdown", false, msg->message_id, NULL)) !=
 			    TELEBOT_ERROR_NONE)
-				sinaibotlog(LOGERR, "Failed send hello.mp4!");
+				log_error("Failed send hello.mp4!");
 		return;
 	}
 	if (msg->left_chat_members && msg->count_left_chat_members > 0) {
@@ -2679,63 +2649,63 @@ main(void)
 {
 	setlocale(LC_ALL, "");
 	signal(SIGINT, sinaibotexit);
-	sinaibotlog(LOGINFO, "Starting sinaibot!");
+	log_info("Starting sinaibot!");
 	if (!TOKENBOT || !*TOKENBOT) {
-		sinaibotlog(LOGERR, "Not found token (check config.h)");
-		sinaibotexit(0);
+		log_fatal("Not found token (check config.h)");
+		sinaibotexit(1);
 	}
-	sinaibotlog(LOGINFO, "Token: %s", TOKENBOT);
-	sinaibotlog(LOGINFO, "Interface: %s", (INTERFACE) ? INTERFACE : "any");
+	log_debug("Token: %s", TOKENBOT);
+	log_debug("Interface: %s", (INTERFACE) ? INTERFACE : "any");
 
 	/* Создаем объект telebot */
 	if (telebot_create(&handle, TOKENBOT, INTERFACE) !=
 	    TELEBOT_ERROR_NONE) {
-		sinaibotlog(LOGERR, "Failed create telebot");
-		sinaibotexit(0);
+		log_fatal("Failed create telebot");
+		sinaibotexit(1);
 	}
 	if (PROXYADDR) {
 		if (telebot_set_proxy(handle, PROXYADDR, PROXYAUTH) !=
 		    TELEBOT_ERROR_NONE) {
-			sinaibotlog(LOGERR, "Failed set proxy");
-			sinaibotexit(0);
+			log_fatal("Failed set proxy");
+			sinaibotexit(1);
 		}
 
-		sinaibotlog(LOGOK, "Proxy %s%s%s is set up", PROXYADDR,
+		log_debug("Proxy %s%s%s is set up", PROXYADDR,
 		    (PROXYAUTH) ? "@" : "", (PROXYAUTH) ? PROXYAUTH : "");
 	}
 
 	/* Получаем информацию о боте */
 	telebot_user_t me = { 0 };
 	if (telebot_get_me(handle, &me) != TELEBOT_ERROR_NONE) {
-		sinaibotlog(LOGERR, "Failed to get bot info");
-		sinaibotexit(0);
+		log_fatal("Failed to get bot info");
+		sinaibotexit(1);
 	}
-	sinaibotlog(LOGOK, "Get bot information:");
+	log_info("Get bot information:");
 	if (me.id)
-		sinaibotlog(LOGINFO, "  id: %lld", me.id);
+		log_debug("  id: %lld", me.id);
 	if (me.first_name)
-		sinaibotlog(LOGINFO, "  first_name: %s", me.first_name);
+		log_debug("  first_name: %s", me.first_name);
 	if (me.last_name)
-		sinaibotlog(LOGINFO, "  last_name: %s", me.last_name);
+		log_debug("  last_name: %s", me.last_name);
 	if (me.language_code)
-		sinaibotlog(LOGINFO, "  language_code: %s", me.language_code);
+		log_debug("  language_code: %s", me.language_code);
 	if (me.username) {
-		sinaibotlog(LOGINFO, "  username: @%s", me.username);
+		log_info("  username: @%s", me.username);
 		snprintf(username, sizeof(username), "@%s", me.username);
 	}
-	sinaibotlog(LOGINFO, "  can_join_groups: %s",
+	log_debug("  can_join_groups: %s",
 	    (me.can_join_groups) ? "true" : "false");
 	telebot_put_me(&me);
 
 	/* Получаем начальную точку */
 	int pos = oldmsgsskip(handle);
 	if (pos)
-		sinaibotlog(LOGOK, "Skip messages (last update id %d)", pos);
+		log_info("Skip messages (last update id %d)", pos);
 
 	/* Открываем базу данных для SIA.  */
 	if (!(sia = SIAOPEN("data/data.db", "SIA/database"))) {
-		sinaibotlog(LOGERR, "Failed start sinai intelligence agency");
-		sinaibotexit(0);
+		log_fatal("Failed start sinai intelligence agency");
+		sinaibotexit(1);
 	}
 
 	while (1) {
@@ -2747,8 +2717,11 @@ main(void)
 
 		/* Получаем обновления */
 		if ((telebot_get_updates(handle, pos, 200, 10, 0, 0, &updates,
-			&numupdates)) != TELEBOT_ERROR_NONE)
+			&numupdates)) != TELEBOT_ERROR_NONE) {
+			log_warn("Failed to get updates from Telegram API");
+			waitms(1000);
 			continue;
+		}
 
 		for (size_t n = 0; n < numupdates; ++n) {
 			/* Перебираем обновления */

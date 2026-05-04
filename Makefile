@@ -2,6 +2,7 @@
 
 CFLAGS += -Itelebot-stripped/include
 CFLAGS += -ISIA
+CFLAGS += -DLOG_USE_COLOR
 CFLAGS += -Wall -fPIC -g -O1
 CFLAGS.jsonc != pkg-config --cflags json-c
 CFLAGS += ${CFLAGS.jsonc}
@@ -27,13 +28,14 @@ telebot-stripped/libtelebot.so:
 SIA/libsia.a:
 	$(MAKE) -C SIA
 
-sinaibot.o: sinaibot.c cvector.h
+sinaibot.o: sinaibot.c cvector.h log.h
+log.o: log.c log.h
 
-sinaibot: sinaibot.o telebot-stripped/libtelebot.so SIA/libsia.a
-	${CC} -o $@ sinaibot.o ${LDFLAGS} ${LDLIBS}
+sinaibot: sinaibot.o log.o telebot-stripped/libtelebot.so SIA/libsia.a
+	${CC} -o $@ sinaibot.o log.o ${LDFLAGS} ${LDLIBS}
 
 clean:
-	rm -f sinaibot.o sinaibot
+	rm -f sinaibot.o sinaibot log.o
 	$(MAKE) -C telebot-stripped clean
 	$(MAKE) -C SIA clean
 

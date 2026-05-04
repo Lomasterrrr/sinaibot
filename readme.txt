@@ -30,6 +30,7 @@
 	3. cvector.h		интерфейс для векторов
 	4. telebot-stripped/	библиотека для бота
 	5. SIA/			библиотека для разведки (Sinai Intelligence Agency)
+	6. log.h log.c		библиотека для логирования
 
 РАБОТА БОТА
 

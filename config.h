@@ -1,12 +1,12 @@
 #ifndef SINAIBOT_CONFIG_H
 #define SINAIBOT_CONFIG_H 1
 
-#define TOKENBOT	  "5827549579:AAFTV4HbYCpTw6jBMSAUBg04mHtQiyXZqkM"
+#define TOKENBOT	  ""
 #define ADMINID		  5004184307
 #define CHATID		  2084477597
 #define INTERFACE	  NULL /* any if NULL */
-			       // #define PROXYADDR	  NULL
-#define PROXYADDR "socks5h://127.0.0.1:10808"
+#define PROXYADDR	  NULL
+// #define PROXYADDR "socks5h://127.0.0.1:10808"
 #define PROXYAUTH NULL
 
 typedef struct {
