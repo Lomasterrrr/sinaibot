@@ -84,6 +84,7 @@
 				/pat
 				/loveact
 				/SIA
+				/kiss
 
 			КОМАНДА AE
 
