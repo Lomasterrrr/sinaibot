@@ -39,7 +39,8 @@ static senator senators[] = {
 	{ "char_ptr", 845723510 }, { "val_ep", 784575243 },
 	{ "sviatoi_podosinovik", 6614747997 },
 	{ "8.E.4.H.О Ananas.", 5403866249 }, { "TinaPavlenko", 5933779145 },
-	{ "MAX", 5969902042 } /* lomosgame228 ??? XXX */
+	{ "MAX", 5969902042 },
+	{ "Αγιανοκοτζι Κιγιοτάκα", 8538203631 } /* lomosgame228 ??? XXX */
 };
 
 #endif

@@ -2131,6 +2131,8 @@ loveact(telebot_handler_t handle, telebot_message_t *msg, const char *name,
 			cmd = "hug";
 		else if (!strcmp(act, "щекочет"))
 			cmd = "tickle";
+		else if (!strcmp(act, "целует"))
+			cmd = "kiss";
 		assert(cmd);
 
 		if (!msg->reply_to_message || !msg->reply_to_message->from) {
@@ -2443,7 +2445,8 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 		return femboyday(handle, msg);
 
 	else if (!strcmp(cmd, "loveact") || !strcmp(cmd, "pat") ||
-	    !strcmp(cmd, "hug") || !strcmp(cmd, "tickle")) {
+	    !strcmp(cmd, "hug") || !strcmp(cmd, "tickle") ||
+	    !strcmp(cmd, "kiss")) {
 		char buf[1024] = { 0 }, *name = NULL, *p;
 		size_t off = 0;
 
@@ -2467,6 +2470,9 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 		if (!strcmp(cmd, "hug"))
 			return loveact(handle, msg, (*buf) ? buf : NULL,
 			    "обнимает");
+		if (!strcmp(cmd, "kiss"))
+			return loveact(handle, msg, (*buf) ? buf : NULL,
+			    "целует");
 	} else if (!strcmp(cmd, "SIA")) {
 		char *args[512] = { 0 }, *type, *p;
 		size_t n = 0;
