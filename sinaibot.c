@@ -802,8 +802,6 @@ act(telebot_handler_t handle, telebot_message_t *msg, const char *name,
 			cmd = "pat";
 		else if (!strcmp(act, "обнимает"))
 			cmd = "hug";
-		else if (!strcmp(act, "щекочет"))
-			cmd = "tickle";
 		assert(cmd);
 
 		if (!msg->reply_to_message || !msg->reply_to_message->from) {
@@ -1063,7 +1061,7 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 		return amenl(handle, msg, strtok(NULL, " "));
 
 	else if (!strcmp(cmd, "act") || !strcmp(cmd, "pat") ||
-	    !strcmp(cmd, "hug") || !strcmp(cmd, "tickle")) {
+	    !strcmp(cmd, "hug")) {
 		char buf[1024] = { 0 }, *name = NULL, *p;
 		size_t off = 0;
 
@@ -1080,9 +1078,6 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 			return act(handle, msg, name, (off) ? buf : NULL, 0);
 		if (!strcmp(cmd, "pat"))
 			return act(handle, msg, (*buf) ? buf : NULL, "гладит",
-			    1);
-		if (!strcmp(cmd, "tickle"))
-			return act(handle, msg, (*buf) ? buf : NULL, "щекочет",
 			    1);
 		if (!strcmp(cmd, "hug"))
 			return act(handle, msg, (*buf) ? buf : NULL, "обнимает",
