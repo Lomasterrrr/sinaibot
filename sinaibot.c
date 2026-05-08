@@ -1058,12 +1058,9 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 	else if (!strcmp(cmd, "amenl"))
 		return amenl(handle, msg, strtok(NULL, " "));
 
-	else if (!strcmp(cmd, "act") || !strcmp(cmd, "hug")) {
-		char buf[1024] = { 0 }, *name = NULL, *p;
+	else if (!strcmp(cmd, "hug")) {
+		char buf[1024] = { 0 }, *p;
 		size_t off = 0;
-
-		if (!strcmp(cmd, "act"))
-			name = strtok(NULL, " ");
 
 		while ((p = strtok(NULL, " ")))
 			if (!bappendf(buf, sizeof(buf), &off, "%s ", p))
@@ -1071,8 +1068,6 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 				    "Слишком длинное сообщение (макс %ld)!",
 				    sizeof(buf) - 1);
 
-		if (!strcmp(cmd, "act"))
-			return act(handle, msg, name, (off) ? buf : NULL, 0);
 		if (!strcmp(cmd, "hug"))
 			return act(handle, msg, (*buf) ? buf : NULL, "обнимает",
 			    1);
