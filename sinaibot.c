@@ -65,8 +65,6 @@ static int numupdates;
 static long long int chatid;
 static SIA *sia;
 
-static size_t femboy_n; /* Для фембоя дня.  */
-
 static uint64_t dickn = 120;	    /* Максимальное значение
 				       увеличение или уменьшения. */
 static uint64_t dickfortuna = 3;    /* Удача.  */
@@ -629,93 +627,6 @@ cmpstrs(const char *str, ...)
 	return 0;
 }
 
-inline static void
-femboyday(telebot_handler_t handle, telebot_message_t *msg)
-{
-	char buf[65535], femboy[4028], date[MAXDATELEN], tmp[128];
-	time_t t = time(NULL);
-	struct tm *tm = localtime(&t);
-	FILE *fp;
-
-	if (!(fp = fopen("data/femboy", "r+")))
-		return log_error("Failed open data/femboy");
-	fgets(buf, sizeof(buf), fp);
-	fclose(fp);
-
-	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
-	    tm->tm_mon + 1, tm->tm_mday);
-
-	sscanf(buf, "%s %*d %*d %[^\n]", tmp, femboy);
-	if (strncmp(tmp, date, 8) != 0) {
-		botmsg(handle, msg->chat->id, msg->message_id,
-		    "*👉👈 Фембой дня еще не определен!*");
-		return;
-	}
-
-	botmsg(handle, msg->chat->id, msg->message_id, "*👉👈 Фембой дня — %s*",
-	    &femboy);
-}
-
-inline static void
-femboy_of_day(telebot_handler_t handle, telebot_message_t *msg)
-{
-	if (femboy_n) {
-		--femboy_n;
-		return;
-	}
-
-	femboy_n = urandom(1, 45);
-
-	time_t t = time(NULL);
-	struct tm *tm = localtime(&t);
-	char date[MAXDATELEN], buf[65535] = { 0 };
-	long long int oldlen;
-	FILE *fp;
-
-	snprintf(date, sizeof(date), "%04d%02d%02d", tm->tm_year + 1900,
-	    tm->tm_mon + 1, tm->tm_mday);
-
-	fclose(fopen("data/femboy", "a"));
-	if (!(fp = fopen("data/femboy", "r+")))
-		return log_error("Failed open data/femboy");
-	fgets(buf, sizeof(buf), fp);
-	oldlen = ftell(fp);
-
-	/* New day? */
-	if (strncmp(buf, date, 8) == 0) {
-		fclose(fp);
-		return;
-	}
-
-	fseek(fp, 0, SEEK_SET);
-
-	/* Time? */
-	sscanf(buf, "%*8c %ld", &t);
-	if (time(NULL) < t) {
-		fclose(fp);
-		return;
-	}
-
-	fprintf(fp, "%s %ld %lld %s\n", date,
-	    (time_t)(time(NULL) + urandom(1, 50400)), msg->from->id,
-	    getnamefromuser(msg->from));
-
-	if (ftell(fp) < oldlen) {
-		t = fileno(fp);
-		ftruncate(t, ftell(fp));
-	}
-
-	if (msg->from->username)
-		botmsg(handle, msg->chat->id, 0,
-		    "*Ой! 👉👈 Фембой дня — %s (@%s)*",
-		    getnamefromuser(msg->from), msg->from->username);
-	else
-		botmsg(handle, msg->chat->id, 0, "*Ой! 👉👈 Фембой дня — %s*",
-		    getnamefromuser(msg->from));
-
-	fclose(fp);
-}
-
 /*
  *		S Y S T E M D V I R U S
  *
@@ -788,156 +699,6 @@ senlist(telebot_handler_t handle, telebot_message_t *msg)
 			break;
 
 	return botmsg(handle, msg->chat->id, msg->message_id, buf);
-}
-
-/*
- * Генерирует автомат из эмодзи, записывает ее в <s> с
- * длинною <slen>, если <win> = 1 то выводит победную
- * в ином случае нет.
- */
-static inline void
-depstate(char *out, size_t outsiz, uint8_t win, uint8_t jackpot)
-{
-	const char *depnotes[] = {
-		/* chat gpt master comment */
-		"🍒", /* вишня — классика! */
-		"🍋", /* лимон — из древних аппаратов */
-		"🔔", /* колокол — символ джекпота */
-		"🍉", /* арбуз — сладкий выигрыш */
-		"⭐", /* звезда — редкий приз */
-		"💎", /* драгоценность — богатство */
-		"7️⃣",  /* заветная семёрка */
-		"🍀", /* клевер — удача */
-		"🎲", /* кость — азарт */
-		"💰", /* мешок золота */
-		"🎰", /* сам автомат */
-	};
-	const char *save;
-
-	assert(out);
-	assert(outsiz);
-
-	if (jackpot) {
-		save = "7️⃣";
-		snprintf(out, outsiz,
-		    "    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n", save, save,
-		    save, save, save, save, save, save, save, save, save, save);
-		return;
-	}
-
-	switch (win) {
-	case 0:
-		snprintf(out, outsiz,
-		    "    %s%s%s%s\n    %s%s%s%s\n    %s%s%s%s\n",
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)]);
-		break;
-	case 1:
-		save = depnotes[urandom(0,
-		    (sizeof(depnotes) / sizeof(const char *)) - 1)];
-		snprintf(out, outsiz,
-		    "     %s%s%s%s\n— %s%s%s%s —\n     %s%s%s%s\n",
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    save, save, save, save,
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)],
-		    depnotes[urandom(0,
-			(sizeof(depnotes) / sizeof(const char *)) - 1)]);
-		break;
-	}
-}
-
-static inline void
-dep(telebot_handler_t handle, telebot_message_t *msg, char *ptr)
-{
-	char state[2048];
-	uint8_t jackpot;
-	uint8_t win;
-	int chance;
-	uint64_t arg;
-	int m;
-
-	assert(handle);
-	assert(msg);
-	assert(msg->chat);
-
-	if (!ptr) {
-		botmsg(handle, msg->chat->id, msg->message_id,
-		    "Слишком мало аргументов: %d вместо 2!\n", 1);
-		return botmsg(handle, msg->chat->id, msg->message_id,
-		    "*Используйте*:\n  /dep ___<прайс>___\n"
-		    "\n*Например:*\n  /dep ___1000___ заношу прайс");
-	}
-
-	if (!unumarg(ptr, 1, 10000000, &arg, sizeof(arg)))
-		return botmsg(handle, msg->chat->id, msg->message_id,
-		    "Ошибка в сумме!");
-	if (arg < 1000)
-		return botmsg(handle, msg->chat->id, msg->message_id,
-		    "Неверный ___<прайс>___ — %" PRIu64 "!"
-		    "\nОн слишком нищий!\n",
-		    arg);
-
-	chance = urandom(1, 90);
-	win = (urandom(0, 99) < chance);
-	jackpot = (urandom(0, 1000) == 0);
-
-	if (jackpot)
-		m = 1000000;
-	else
-		m = (int)(1000 / (chance / 100.0) + urandom(1, 10));
-
-	depstate(state, sizeof(state), win, jackpot);
-
-	if (win || jackpot)
-		return botmsg(handle, msg->chat->id, msg->message_id,
-		    "___%s___\n"
-		    "*Множитель прайса*: %d\n"
-		    "*Шанс победы*: %d%%\n"
-		    "*Формула*: ___%" PRIu64 " × %d___\n"
-		    "\n%s\n"
-		    "*ВЫИГРАНО — %" PRIu64 "$!*",
-		    curtimestr(0), m, chance, arg, m, state, arg * m);
-
-	return botmsg(handle, msg->chat->id, msg->message_id,
-	    "___%s___\n"
-	    "*Шанс победы*: %d%%\n"
-	    "\n%s\n"
-	    "___ПРОИГРАНА!___\n",
-	    curtimestr(0), chance, state);
 }
 
 static inline void
@@ -2039,68 +1800,8 @@ votestopall(telebot_handler_t handle, telebot_message_t *msg)
 }
 
 static inline void
-femboy(telebot_handler_t handle, telebot_message_t *msg, char *cmd)
-{
-	/*
-	 * тайный язык фембоев
-	 *
-	 * Источники:
-	 * https://oldteamhost.github.io/src/pages/sinai.html#section-3
-	 * https://chatgpt.com/
-	 */
-	const char *femboylang[] = { ":3", "OwO", "oWo", ">.<", "👉👈", "🥺",
-		"^^", ">w<", ":<", ">3", "\\:c", "UwU", "o.o", ":>", "<3",
-		"\\:O", "uWu", ">W<", "\\:C", "🥺🥺", "🥺🥺🥺",
-		"hewwo~ how awe u~", "senpai~", "not me doing this 👉👈",
-		"*nuzzles u*", "*pounces on u*", "*blushes*", "*giggles~*",
-		"*tail wags*", "*hides face*", "*squeaks*", "*whimpers softly*",
-		"am smol qwq", "pls no bully :<", "i wuv you~", "rawr x3",
-		"so cutesy~", "pwease uwu", "chu~", "nya~",
-		"i'm just a smol bean~", "*licks ur cheek*", "*clings to u*",
-		"*cuddwes*", "*snuggwes tight~*",
-		"*looks up at u wif big eyes*", "*does a happi dance*",
-		"*owo what's dis?*", "*floofs hair*", "*twirls around*",
-		"*tilts head cutely*", "*paw pats*", "*wiggles fingers*",
-		"s-senpai noticed me! 🥺", "*sparkles*", "uwu what's this? :3",
-		"*huggles*", "*boops ur nose*", "*blushes deeply*", "teehee~",
-		"*sniffs*", "*peekaboo!*", "mwah~ 💋", "soft smooches~",
-		"*sleepy yawn*", "teehee owo", "*licks lips*", "rawr xD",
-		"pls be gentle~", "*floats like a cloud*", "*dreamy eyes*",
-		"glomp~", "paws up! *meow*", "uwu >w<",
-		"*snuggles into your arms*", "💕", "🥺💖", "💖", "femboy" };
-	size_t i = 40, n, off = 0;
-	char speak[2048];
-
-	assert(handle);
-	assert(msg);
-	assert(msg->chat);
-	assert(msg->from);
-	assert(cmd);
-
-	for (n = 0; n < sizeof(femboylang) / sizeof(*femboylang); ++n) {
-		if (!strcasestr(cmd, femboylang[n]))
-			continue;
-
-		if (!bappendf(speak, sizeof(speak), &off, "hewwo~ %s! 👉👈\n\n",
-			getnamefromuser(msg->from))) {
-			return;
-		}
-
-		while (i--)
-			if (!bappendf(speak, sizeof(speak), &off, "%s ",
-				femboylang[urandom(0,
-				    (sizeof(femboylang) /
-					sizeof(const char *)) -
-					1)]))
-				break;
-
-		return botmsg(handle, msg->chat->id, msg->message_id, speak);
-	}
-}
-
-static inline void
-loveact(telebot_handler_t handle, telebot_message_t *msg, const char *name,
-    const char *act)
+act(telebot_handler_t handle, telebot_message_t *msg, const char *name,
+    const char *act, bool h)
 {
 	const char *hearts[] = { "❤️", "🩷", "🧡", "💛", "💚", "🩵", "💙", "💜",
 		"🤎", "🖤", "🩶", "🤍", "❣️", "💕", "💞", "💓", "💗", "💖", "💘",
@@ -2118,12 +1819,13 @@ loveact(telebot_handler_t handle, telebot_message_t *msg, const char *name,
 		botmsg(handle, msg->chat->id, msg->message_id,
 		    "Не хватает аргументов!");
 		return botmsg(handle, msg->chat->id, 0,
-		    "*Используйте*:\n  /loveact ___"
+		    "*Используйте*:\n  /act ___"
 		    "<имя> <действие>___\n"
 
-		    "\n*Например:*\n  /loveact ___питтака"
+		    "\n*Например:*\n  /act ___питтака"
 		    " учит геометрии___\n");
-	} else if (!name) {
+	}
+	if (!name) {
 		const char *cmd = NULL;
 		if (!strcmp(act, "гладит"))
 			cmd = "pat";
@@ -2154,8 +1856,13 @@ loveact(telebot_handler_t handle, telebot_message_t *msg, const char *name,
 	} else
 		snprintf(resname, sizeof(resname), "%s", name);
 
-	botmsg(handle, msg->chat->id, msg->message_id, "*%s %s %s — %s %s*", hp,
-	    getnamefromuser(msg->from), act, resname, hp);
+	if (h)
+		botmsg(handle, msg->chat->id, msg->message_id,
+		    "*%s %s %s — %s %s*", hp, getnamefromuser(msg->from), act,
+		    resname, hp);
+	else
+		botmsg(handle, msg->chat->id, msg->message_id, "*%s %s — %s*",
+		    getnamefromuser(msg->from), act, resname);
 }
 
 static inline void
@@ -2386,9 +2093,6 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 	else if (!strcmp(cmd, "senlist"))
 		return senlist(handle, msg);
 
-	else if (!strcmp(cmd, "dep"))
-		return dep(handle, msg, strtok(NULL, " "));
-
 	else if (!strcmp(cmd, "amen"))
 		return randomfileline("data/nz", msg);
 
@@ -2439,15 +2143,12 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 	else if (cmpstrs(cmd, "dickreset", "penisreset", NULL))
 		return dickreset(handle, msg);
 
-	else if (!strcmp(cmd, "femboyday"))
-		return femboyday(handle, msg);
-
-	else if (!strcmp(cmd, "loveact") || !strcmp(cmd, "pat") ||
+	else if (!strcmp(cmd, "act") || !strcmp(cmd, "pat") ||
 	    !strcmp(cmd, "hug") || !strcmp(cmd, "tickle")) {
 		char buf[1024] = { 0 }, *name = NULL, *p;
 		size_t off = 0;
 
-		if (!strcmp(cmd, "loveact"))
+		if (!strcmp(cmd, "act"))
 			name = strtok(NULL, " ");
 
 		while ((p = strtok(NULL, " ")))
@@ -2456,17 +2157,17 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 				    "Слишком длинное сообщение (макс %ld)!",
 				    sizeof(buf) - 1);
 
-		if (!strcmp(cmd, "loveact"))
-			return loveact(handle, msg, name, (off) ? buf : NULL);
+		if (!strcmp(cmd, "act"))
+			return act(handle, msg, name, (off) ? buf : NULL, 0);
 		if (!strcmp(cmd, "pat"))
-			return loveact(handle, msg, (*buf) ? buf : NULL,
-			    "гладит");
+			return act(handle, msg, (*buf) ? buf : NULL, "гладит",
+			    1);
 		if (!strcmp(cmd, "tickle"))
-			return loveact(handle, msg, (*buf) ? buf : NULL,
-			    "щекочет");
+			return act(handle, msg, (*buf) ? buf : NULL, "щекочет",
+			    1);
 		if (!strcmp(cmd, "hug"))
-			return loveact(handle, msg, (*buf) ? buf : NULL,
-			    "обнимает");
+			return act(handle, msg, (*buf) ? buf : NULL, "обнимает",
+			    1);
 	} else if (!strcmp(cmd, "SIA")) {
 		char *args[512] = { 0 }, *type, *p;
 		size_t n = 0;
@@ -2533,8 +2234,6 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 
 		return;
 	}
-
-	return femboy(handle, msg, cmd);
 }
 
 static inline long long int
@@ -2607,8 +2306,6 @@ sinaibotproc(telebot_handler_t handle, telebot_update_t *update)
 	/* Онет!! */
 	if (systemdvirus(handle, msg))
 		return;
-
-	femboy_of_day(handle, msg);
 
 	/* Тогда это может быть команда */
 	return commandproc(handle, msg);
