@@ -1,13 +1,20 @@
 #ifndef SINAIBOT_CONFIG_H
 #define SINAIBOT_CONFIG_H 1
 
-#define TOKENBOT	  ""
+#define TOKENBOT	  "5827549579:AAFbbVCQKlkGeGKUy2J8fBjeuvtXyEvcEao"
 #define ADMINID		  5004184307
 #define CHATID		  2084477597
 #define INTERFACE	  NULL /* any if NULL */
-#define PROXYADDR	  NULL
-// #define PROXYADDR "socks5h://127.0.0.1:10808"
+			       // #define PROXYADDR	  NULL
+#define PROXYADDR "socks5h://127.0.0.1:10808"
 #define PROXYAUTH NULL
+
+#define INFOMESSAGE                                                  \
+	"*Завет (правила и т. п.):* https://aefdn.ru/sinai.pdf\n"    \
+	"*Фото:* https://aefdn.ru/sinaipics.html\n"                  \
+	"*Дискорд (неофициальный):* https://discord.gg/n2rkHRpQVr\n" \
+	"\n"                                                         \
+	"Общаться можно на любые темы. Власть это администратор (@Lomasterrr) и почетные участники (те, кто имеют зеленый префикс)."
 
 typedef struct {
 	const char *name; /* Любая пометка.  */

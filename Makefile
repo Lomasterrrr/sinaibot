@@ -28,7 +28,7 @@ telebot-stripped/libtelebot.so:
 SIA/libsia.a:
 	$(MAKE) -C SIA
 
-sinaibot.o: sinaibot.c cvector.h log.h
+sinaibot.o: sinaibot.c cvector.h log.h config.h
 log.o: log.c log.h
 
 sinaibot: sinaibot.o log.o telebot-stripped/libtelebot.so SIA/libsia.a

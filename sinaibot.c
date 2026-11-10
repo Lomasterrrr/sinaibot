@@ -51,6 +51,7 @@
 #include "config.h"
 #include "cvector.h"
 #include "log.h"
+#include "telebot-methods.h"
 
 #define MAXLINELEN 1024
 #define MAXMSGLEN  4096
@@ -1049,6 +1050,12 @@ commandproc(telebot_handler_t handle, telebot_message_t *msg)
 	else if (!strcmp(cmd, "votestopall"))
 		return votestopall(handle, msg);
 
+	else if (!strcmp(cmd, "info")) {
+		telebot_send_photo(handle, msg->chat->id, "data/logo.jpg", 1,
+		    INFOMESSAGE, "Markdown", 0, msg->message_id, NULL);
+		return;
+	}
+
 	else if (!strcmp(cmd, "senlist"))
 		return senlist(handle, msg);
 
@@ -1189,9 +1196,9 @@ sinaibotproc(telebot_handler_t handle, telebot_update_t *update)
 	if (msg->new_chat_members && msg->count_new_chat_members) {
 		for (n = 0; n < msg->count_new_chat_members; ++n)
 			if ((telebot_send_animation(handle, chatid,
-				"data/hello.mp4", true, 0, 0, 0, NULL, NULL,
-				"Markdown", false, msg->message_id, NULL)) !=
-			    TELEBOT_ERROR_NONE)
+				"data/hello.mp4", true, 0, 0, 0, NULL,
+				INFOMESSAGE, "Markdown", false, msg->message_id,
+				NULL)) != TELEBOT_ERROR_NONE)
 				log_error("Failed send hello.mp4!");
 		return;
 	}
